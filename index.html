@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kotak Kritik & Saran Anonim</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        /* Desain Judul Lebih Besar & Menggunakan Ikon */
+        .header-wrapper {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header-icon {
+            font-size: 3.5rem;
+            background: linear-gradient(45deg, #ff007f, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 4px 8px rgba(0,242,254,0.3));
+            animation: pulse 2s infinite alternate;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.3;
+            margin-bottom: 12px;
+            background: linear-gradient(45deg, #ffffff, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            color: #b0c4de;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #00f2fe;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        label i {
+            margin-right: 6px;
+        }
+
+        textarea, .custom-select-trigger, input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            border-color: #00f2fe;
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        /* Kontainer Dinamis Input "Lainnya" */
+        .dynamic-input-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, margin-top 0.4s ease, opacity 0.3s;
+            opacity: 0;
+        }
+
+        .dynamic-input-container.show {
+            max-height: 100px;
+            margin-top: 12px;
+            opacity: 1;
+        }
+
+        /* Custom Dropdown Trigger */
+        .custom-select-trigger {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .custom-select-trigger:hover {
+            border-color: rgba(0, 242, 254, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Tombol Kirim */
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.6);
+        }
+
+        .btn-submit:active {
+            transform: translateY(1px);
+        }
+
+        .btn-submit:disabled {
+            background: linear-gradient(45deg, #557a8a, #718a99);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ================= MODAL STYLE SYSTEM ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 20, 30, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: rgba(25, 45, 55, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 18px;
+            padding: 30px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: scale(0.7) translateY(-30px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1) translateY(0);
+        }
+
+        /* List Pilihan Kategori di Pop-up */
+        .category-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .category-item {
+            padding: 14px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .category-item:hover {
+            background: linear-gradient(90deg, rgba(0,242,254,0.15), rgba(79,172,254,0.05));
+            border-color: #00f2fe;
+            padding-left: 20px;
+        }
+
+        .category-item i {
+            color: #00f2fe;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Atribut Pop-up Sukses */
+        .success-icon {
+            font-size: 4rem;
+            color: #00ffaa;
+            margin-bottom: 15px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: #cccccc;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .btn-close-modal {
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Sistem Keyframe Animasi */
+        @keyframes pulse {
+            0% { transform: scale(1); filter: drop-shadow(0 4px 8px rgba(0,242,254,0.3)); }
+            100% { transform: scale(1.04); filter: drop-shadow(0 6px 15px rgba(0,242,254,0.6)); }
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .footer {
+            margin-top: 25px;
+            font-size: 11px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.35);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-wrapper">
+        <div class="header-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+        <h1>Kotak Kritik & Saran Anonim</h1>
+        <p class="subtitle">Keluarkan unek-unek atau masukan kamu secara bebas tanpa perlu login. Tetap jaga kesopanan ya! ✨</p>
+    </div>
+    
+    <form id="feedbackForm">
+        <div class="form-group">
+            <label for="pesan"><i class="fa-solid fa-comment-dots"></i> Apa yang ingin kamu sampaikan? *</label>
+            <textarea id="pesan" name="pesan" placeholder="Tulis masukan atau unek-unek Anda di sini..." required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label><i class="fa-solid fa-tags"></i> Masukan ini tentang apa?</label>
+            <div class="custom-select-trigger" id="selectKategoriBtn">
+                <span id="selectedKategoriText">Sikap / Kepribadian</span>
+                <i class="fa-solid fa-chevron-down" style="color: #00f2fe;"></i>
+            </div>
+            <input type="hidden" id="kategori" name="kategori" value="Sikap / Kepribadian">
+            
+            <div class="dynamic-input-container" id="lainnyaContainer">
+                <input type="text" id="kategoriLainnya" placeholder="Sebutkan kategori lainnya...">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="perbaikan"><i class="fa-solid fa-tools"></i> Menurut kamu, apa yang perlu aku perbaiki?</label>
+            <textarea id="perbaikan" name="perbaikan" placeholder="Contoh: Cara bicaranya lebih kalem lagi, dll..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+            <i class="fa-solid fa-paper-plane"></i> Kirim Masukan
+        </button>
+    </form>
+    
+    <div class="footer">
+        Aman & Anonim • Terhubung dengan Google Sheets API
+    </div>
+</div>
+
+<div class="modal-overlay" id="categoryModal">
+    <div class="modal-box">
+        <div class="modal-title">Pilih Kategori Masukan</div>
+        <ul class="category-list">
+            <li class="category-item" data-value="Sikap / Kepribadian"><i class="fa-solid fa-user-gear"></i> Sikap / Kepribadian</li>
+            <li class="category-item" data-value="Cara komunikasi"><i class="fa-solid fa-comments"></i> Cara komunikasi</li>
+            <li class="category-item" data-value="Penampilan"><i class="fa-solid fa-shirt"></i> Penampilan</li>
+            <li class="category-item" data-value="Lainnya"><i class="fa-solid fa-ellipsis"></i> Yang lain... (Isi sendiri)</li>
+        </ul>
+    </div>
+</div>
+
+<div class="modal-overlay" id="successModal">
+    <div class="modal-box">
+        <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="modal-title">Berhasil Terkirim!</div>
+        <div class="modal-text">Terima kasih banyak! Kritik atau saran kamu sudah tersimpan secara anonim langsung ke database. 😎</div>
+        <button class="btn-close-modal" id="closeSuccessBtn">Sama-sama</button>
+    </div>
+</div>
+
+<script>
+    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT KAMU DI SINI
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzDQj02zqB64f3Svjj4hux92B-qc-coBRISQqztZncNPaFSCXm5iVN7vtdEBAj2Q_Y/exec';
+    
+    const form = document.getElementById('feedbackForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Elemen Kontrol Kategori Custom
+    const selectKategoriBtn = document.getElementById('selectKategoriBtn');
+    const categoryModal = document.getElementById('categoryModal');
+    const selectedKategoriText = document.getElementById('selectedKategoriText');
+    const kategoriHiddenInput = document.getElementById('kategori');
+    const categoryItems = document.querySelectorAll('.category-item');
+    const lainnyaContainer = document.getElementById('lainnyaContainer');
+    const kategoriLainnyaInput = document.getElementById('kategoriLainnya');
+    
+    // Elemen Kontrol Modal Sukses
+    const successModal = document.getElementById('successModal');
+    const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+
+    // 1. Logika Buka Modal Kategori
+    selectKategoriBtn.addEventListener('click', () => {
+        categoryModal.classList.add('active');
+    });
+
+    // 2. Logika Pemilihan Item di Dalam Modal Kategori
+    categoryItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const value = item.getAttribute('data-value');
+            
+            if (value === 'Lainnya') {
+                selectedKategoriText.innerText = 'Yang lain...';
+                kategoriHiddenInput.value = 'Lainnya';
+                lainnyaContainer.classList.add('show');
+                kategoriLainnyaInput.setAttribute('required', 'true');
+                kategoriLainnyaInput.focus();
+            } else {
+                selectedKategoriText.innerText = value;
+                kategoriHiddenInput.value = value;
+                lainnyaContainer.classList.remove('show');
+                kategoriLainnyaInput.removeAttribute('required');
+                kategoriLainnyaInput.value = ''; // Bersihkan input teks cadangan
+            }
+            
+            categoryModal.classList.remove('active');
+        });
+    });
+
+    // Tutup modal kategori jika menekan area kosong di luar box
+    categoryModal.addEventListener('click', (e) => {
+        if(e.target === categoryModal) {
+            categoryModal.classList.remove('active');
+        }
+    });
+
+    // 3. Logika Transmisi Data Form & Pemicu Pop-up Sukses
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
+
+        const formData = new FormData(form);
+        
+        // Substitusi data jika user menentukan kategori kustom sendiri
+        if (kategoriHiddenInput.value === 'Lainnya') {
+            formData.set('kategori', 'Lainnya: ' + kategoriLainnyaInput.value);
+        }
+
+        fetch(scriptURL, { method: 'POST', body: formData })
+            .then(response => {
+                // Aktifkan jendela pop-up sukses kustom
+                successModal.classList.add('active');
+                
+                // Reset Kendali Tombol & Form
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Kirim Masukan';
+                form.reset();
+                
+                // Kembalikan tampilan selektor kategori ke posisi default
+                selectedKategoriText.innerText = 'Sikap / Kepribadian';
+                kategoriHiddenInput.value = 'Sikap / Kepribadian';
+                lainnyaContainer.classList.remove('show');
+                kategoriLainnyaInput.removeAttribute('required');
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                alert('Waduh, terjadi kendala pengiriman data. Periksa koneksi atau skrip web app kamu.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Kirim Masukan';
+            });
+    });
+
+    // Tombol Penutup Pop-up Sukses
+    closeSuccessBtn.addEventListener('click', () => {
+        successModal.classList.remove('active');
+    });
+</script>
+
+</body>
+</html>
