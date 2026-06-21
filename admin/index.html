@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Kritik & Saran</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #0a0e17;
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100%;
+            background: linear-gradient(180deg, #0f2027, #1a2a33);
+            border-right: 1px solid rgba(0, 242, 254, 0.1);
+            padding: 30px 20px;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand i {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #ff007f, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-brand h2 {
+            margin-top: 10px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #ffffff, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-brand small {
+            color: #8899aa;
+            font-size: 11px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #aabbcc;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-bottom: 5px;
+            gap: 12px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(0, 242, 254, 0.08);
+            color: #00f2fe;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-item .badge {
+            margin-left: auto;
+            background: #ff007f;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 270px;
+            padding: 20px 30px 30px;
+        }
+
+        /* HEADER */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ffffff, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header-actions button {
+            padding: 10px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            color: #c0d0e0;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .header-actions button:hover {
+            background: rgba(0, 242, 254, 0.1);
+            border-color: #00f2fe;
+            color: #00f2fe;
+        }
+
+        /* STATS CARDS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 18px 20px;
+        }
+
+        .stat-card .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: #8899aa;
+            margin-top: 4px;
+        }
+
+        .stat-card .stat-icon {
+            float: right;
+            font-size: 24px;
+            opacity: 0.5;
+        }
+
+        .stat-card.primary .stat-number { color: #00f2fe; }
+        .stat-card.success .stat-number { color: #00ffaa; }
+        .stat-card.warning .stat-number { color: #ffcc00; }
+        .stat-card.danger .stat-number { color: #ff4455; }
+
+        /* FILTER */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-bar input, .filter-bar select {
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.3s;
+            min-width: 150px;
+        }
+
+        .filter-bar input:focus, .filter-bar select:focus {
+            border-color: #00f2fe;
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .filter-bar select option {
+            background: #1a2a33;
+        }
+
+        /* TABLE */
+        .table-container {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            overflow: hidden;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead {
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #8899aa;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: middle;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        tr:hover td {
+            background: rgba(0, 242, 254, 0.02);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-unread {
+            background: rgba(255, 68, 85, 0.15);
+            color: #ff4455;
+        }
+
+        .status-read {
+            background: rgba(0, 255, 170, 0.12);
+            color: #00ffaa;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons button {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-read {
+            background: rgba(0, 242, 254, 0.12);
+            color: #00f2fe;
+        }
+        .btn-read:hover { background: rgba(0, 242, 254, 0.2); }
+
+        .btn-delete {
+            background: rgba(255, 68, 85, 0.12);
+            color: #ff4455;
+        }
+        .btn-delete:hover { background: rgba(255, 68, 85, 0.25); }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.05);
+            color: #aabbcc;
+        }
+        .btn-view:hover { background: rgba(255, 255, 255, 0.1); }
+
+        /* LOADING */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8899aa;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8899aa;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+
+        /* MODAL DETAIL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #1a2a33;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 550px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-box h3 {
+            margin-bottom: 20px;
+            color: #00f2fe;
+        }
+
+        .modal-box .detail-item {
+            margin-bottom: 15px;
+        }
+
+        .modal-box .detail-item label {
+            font-size: 11px;
+            color: #8899aa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .modal-box .detail-item .value {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 10px 14px;
+            border-radius: 8px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .modal-close {
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e0e0e0;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .hamburger {
+                display: block !important;
+                background: none;
+                border: none;
+                color: #e0e0e0;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 8px;
+            }
+        }
+
+        .hamburger {
+            display: none;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 2000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: rgba(0, 255, 170, 0.2);
+            border: 1px solid #00ffaa;
+            color: #00ffaa;
+        }
+
+        .toast.error {
+            background: rgba(255, 68, 85, 0.2);
+            border: 1px solid #ff4455;
+            color: #ff4455;
+        }
+
+        .row-number {
+            color: #00f2fe;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="fa-solid fa-envelope-open-text"></i>
+        <h2>Feedback Admin</h2>
+        <small>Manajemen Kritik & Saran</small>
+    </div>
+
+    <div class="nav-item active" onclick="loadDashboard()">
+        <i class="fa-solid fa-gauge-high"></i> Dashboard
+    </div>
+    <div class="nav-item" onclick="loadData()">
+        <i class="fa-solid fa-list"></i> Semua Masukan
+        <span class="badge" id="totalBadge">0</span>
+    </div>
+    <div class="nav-item" onclick="loadUnread()">
+        <i class="fa-solid fa-envelope"></i> Belum Dibaca
+        <span class="badge" id="unreadBadge">0</span>
+    </div>
+    <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+        <div class="nav-item" onclick="refreshData()">
+            <i class="fa-solid fa-rotate"></i> Refresh
+        </div>
+        <div class="nav-item" onclick="window.open('<?!= ScriptApp.getService().getUrl() ?>', '_blank')">
+            <i class="fa-solid fa-external-link-alt"></i> Buka Form
+        </div>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <!-- Header -->
+    <div class="page-header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <h1 id="pageTitle">📊 Dashboard</h1>
+        </div>
+        <div class="header-actions">
+            <button onclick="refreshData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            <button onclick="exportData()"><i class="fa-solid fa-download"></i> Export</button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card primary">
+            <span class="stat-icon"><i class="fa-solid fa-inbox"></i></span>
+            <div class="stat-number" id="statTotal">0</div>
+            <div class="stat-label">Total Masukan</div>
+        </div>
+        <div class="stat-card danger">
+            <span class="stat-icon"><i class="fa-solid fa-envelope"></i></span>
+            <div class="stat-number" id="statUnread">0</div>
+            <div class="stat-label">Belum Dibaca</div>
+        </div>
+        <div class="stat-card success">
+            <span class="stat-icon"><i class="fa-solid fa-check-circle"></i></span>
+            <div class="stat-number" id="statRead">0</div>
+            <div class="stat-label">Sudah Dibaca</div>
+        </div>
+        <div class="stat-card warning">
+            <span class="stat-icon"><i class="fa-solid fa-tags"></i></span>
+            <div class="stat-number" id="statCategories">0</div>
+            <div class="stat-label">Kategori Terisi</div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="🔍 Cari pesan..." oninput="applyFilters()">
+        <select id="categoryFilter" onchange="applyFilters()">
+            <option value="">Semua Kategori</option>
+            <option value="Sikap / Kepribadian">Sikap / Kepribadian</option>
+            <option value="Cara komunikasi">Cara komunikasi</option>
+            <option value="Penampilan">Penampilan</option>
+            <option value="Lainnya">Lainnya</option>
+        </select>
+        <select id="statusFilter" onchange="applyFilters()">
+            <option value="">Semua Status</option>
+            <option value="Belum Dibaca">Belum Dibaca</option>
+            <option value="Sudah Dibaca">Sudah Dibaca</option>
+        </select>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <div id="tableContent">
+            <div class="loading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Memuat data...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detail -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-box">
+        <h3><i class="fa-solid fa-file-lines"></i> Detail Masukan</h3>
+        <div id="detailContent"></div>
+        <button class="modal-close" onclick="closeDetail()"><i class="fa-solid fa-times"></i> Tutup</button>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // Konfigurasi
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzDQj02zqB64f3Svjj4hux92B-qc-coBRISQqztZncNPaFSCXm5iVN7vtdEBAj2Q_Y/exec';
+    let allData = [];
+    let currentFilter = 'all';
+
+    // ========== LOAD FUNCTIONS ==========
+    function loadDashboard() {
+        document.getElementById('pageTitle').innerHTML = '📊 Dashboard';
+        loadStats();
+        loadData();
+        setActiveNav('dashboard');
+    }
+
+    function loadData() {
+        currentFilter = 'all';
+        document.getElementById('pageTitle').innerHTML = '📋 Semua Masukan';
+        fetchData();
+        setActiveNav('data');
+    }
+
+    function loadUnread() {
+        currentFilter = 'unread';
+        document.getElementById('pageTitle').innerHTML = '📨 Belum Dibaca';
+        fetchData();
+        setActiveNav('unread');
+    }
+
+    function setActiveNav(page) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        if (page === 'dashboard') {
+            document.querySelector('.nav-item:first-child').classList.add('active');
+        } else if (page === 'data') {
+            document.querySelectorAll('.nav-item')[1].classList.add('active');
+        } else if (page === 'unread') {
+            document.querySelectorAll('.nav-item')[2].classList.add('active');
+        }
+    }
+
+    // ========== FETCH DATA ==========
+    function fetchData() {
+        const tableContent = document.getElementById('tableContent');
+        tableContent.innerHTML = `<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i><span>Memuat data...</span></div>`;
+
+        fetch(`${scriptURL}?action=getData`)
+            .then(response => response.json())
+            .then(result => {
+                console.log('Data received:', result);
+                if (result.result === 'success') {
+                    allData = result.data || [];
+                    console.log('All data:', allData);
+                    updateBadges();
+                    applyFilters();
+                    loadStats();
+                } else {
+                    tableContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Gagal memuat data: ${result.error || 'Unknown error'}</p></div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                tableContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-wifi-slash"></i><p>Gagal terhubung ke server: ${error.message}</p></div>`;
+            });
+    }
+
+    function refreshData() {
+        showToast('Merefresh data...', 'success');
+        fetchData();
+    }
+
+    // ========== LOAD STATS ==========
+    function loadStats() {
+        fetch(`${scriptURL}?action=getStats`)
+            .then(response => response.json())
+            .then(result => {
+                console.log('Stats received:', result);
+                if (result.result === 'success') {
+                    const stats = result.stats;
+                    document.getElementById('statTotal').textContent = stats.total || 0;
+                    document.getElementById('statUnread').textContent = stats.unread || 0;
+                    document.getElementById('statRead').textContent = stats.read || 0;
+                    document.getElementById('statCategories').textContent = Object.keys(stats.byCategory || {}).length || 0;
+                    
+                    document.getElementById('totalBadge').textContent = stats.total || 0;
+                    document.getElementById('unreadBadge').textContent = stats.unread || 0;
+                }
+            })
+            .catch(console.error);
+    }
+
+    function updateBadges() {
+        const total = allData.length;
+        const unread = allData.filter(d => d.Status !== 'Sudah Dibaca').length;
+        document.getElementById('totalBadge').textContent = total;
+        document.getElementById('unreadBadge').textContent = unread;
+    }
+
+    // ========== APPLY FILTERS ==========
+    function applyFilters() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const category = document.getElementById('categoryFilter').value;
+        const status = document.getElementById('statusFilter').value;
+
+        let filtered = allData;
+
+        // Filter berdasarkan tab
+        if (currentFilter === 'unread') {
+            filtered = filtered.filter(d => d.Status !== 'Sudah Dibaca');
+        }
+
+        // Filter search
+        if (search) {
+            filtered = filtered.filter(d => {
+                const pesan = (d.pesan || '').toLowerCase();
+                const kategori = (d.kategori || '').toLowerCase();
+                const perbaikan = (d.perbaikan || '').toLowerCase();
+                return pesan.includes(search) || 
+                       kategori.includes(search) || 
+                       perbaikan.includes(search);
+            });
+        }
+
+        // Filter kategori
+        if (category) {
+            filtered = filtered.filter(d => {
+                const kat = d.kategori || '';
+                if (category === 'Lainnya') {
+                    return kat.startsWith('Lainnya:');
+                }
+                return kat === category;
+            });
+        }
+
+        // Filter status
+        if (status) {
+            filtered = filtered.filter(d => d.Status === status);
+        }
+
+        renderTable(filtered);
+    }
+
+    // ========== RENDER TABLE ==========
+    function renderTable(data) {
+        const tableContent = document.getElementById('tableContent');
+
+        if (!data || data.length === 0) {
+            tableContent.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p>Tidak ada data yang ditemukan</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:50px;">No</th>
+                        <th style="min-width:200px;">Pesan</th>
+                        <th style="min-width:120px;">Kategori</th>
+                        <th style="min-width:150px;">Saran Perbaikan</th>
+                        <th style="min-width:100px;">Status</th>
+                        <th style="min-width:150px;">Waktu</th>
+                        <th style="min-width:180px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        data.forEach((row) => {
+            const isUnread = row.Status !== 'Sudah Dibaca';
+            const statusLabel = isUnread ? 'Belum Dibaca' : 'Sudah Dibaca';
+            const statusClass = isUnread ? 'status-unread' : 'status-read';
+            const timestamp = row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-';
+
+            html += `
+                <tr>
+                    <td><span class="row-number">${row.no || '-'}</span></td>
+                    <td>${truncateText(row.pesan || '', 50)}</td>
+                    <td>${row.kategori || '-'}</td>
+                    <td>${truncateText(row.perbaikan || '-', 40)}</td>
+                    <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                    <td>${timestamp}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-view" onclick="viewDetail(${row.no})">
+                                <i class="fa-solid fa-eye"></i> Detail
+                            </button>
+                            ${isUnread ? `<button class="btn-read" onclick="markAsRead(${row.no})">
+                                <i class="fa-solid fa-check"></i> Tandai
+                            </button>` : ''}
+                            <button class="btn-delete" onclick="deleteRow(${row.no})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        tableContent.innerHTML = html;
+    }
+
+    // ========== UTILITY FUNCTIONS ==========
+    function truncateText(text, maxLength) {
+        if (!text) return '-';
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    }
+
+    function getRowData(no) {
+        return allData.find(d => d.no === no) || null;
+    }
+
+    // ========== VIEW DETAIL ==========
+    function viewDetail(no) {
+        const row = getRowData(no);
+        if (!row) {
+            showToast('Data tidak ditemukan', 'error');
+            return;
+        }
+
+        const modal = document.getElementById('detailModal');
+        const content = document.getElementById('detailContent');
+
+        let html = `
+            <div class="detail-item">
+                <label>Pesan / Saran</label>
+                <div class="value">${row.pesan || '-'}</div>
+            </div>
+            <div class="detail-item">
+                <label>Kategori</label>
+                <div class="value">${row.kategori || '-'}</div>
+            </div>
+            <div class="detail-item">
+                <label>Saran Perbaikan</label>
+                <div class="value">${row.perbaikan || '-'}</div>
+            </div>
+            <div class="detail-item">
+                <label>Status</label>
+                <div class="value">${row.Status || 'Belum Dibaca'}</div>
+            </div>
+            <div class="detail-item">
+                <label>Waktu Dikirim</label>
+                <div class="value">${row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-'}</div>
+            </div>
+        `;
+
+        content.innerHTML = html;
+        modal.classList.add('active');
+    }
+
+    function closeDetail() {
+        document.getElementById('detailModal').classList.remove('active');
+    }
+
+    // ========== MARK AS READ ==========
+    function markAsRead(no) {
+        if (!confirm('Tandai masukan ini sebagai sudah dibaca?')) return;
+
+        fetch(`${scriptURL}?action=updateStatus&rowNo=${no}&status=Sudah Dibaca`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.result === 'success') {
+                    showToast('✅ Berhasil ditandai sudah dibaca', 'success');
+                    refreshData();
+                } else {
+                    showToast('❌ Gagal update status', 'error');
+                }
+            })
+            .catch(() => showToast('❌ Terjadi kesalahan', 'error'));
+    }
+
+    // ========== DELETE ROW ==========
+    function deleteRow(no) {
+        if (!confirm('⚠️ Yakin ingin menghapus masukan ini? Aksi tidak dapat dibatalkan!')) return;
+
+        fetch(`${scriptURL}?action=deleteRow&rowNo=${no}`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.result === 'success') {
+                    showToast('🗑️ Data berhasil dihapus', 'success');
+                    refreshData();
+                } else {
+                    showToast('❌ Gagal menghapus data', 'error');
+                }
+            })
+            .catch(() => showToast('❌ Terjadi kesalahan', 'error'));
+    }
+
+    // ========== EXPORT DATA ==========
+    function exportData() {
+        if (!allData || allData.length === 0) {
+            showToast('Tidak ada data untuk diexport', 'error');
+            return;
+        }
+
+        // Buat CSV
+        const headers = ['No', 'Timestamp', 'Pesan', 'Kategori', 'Perbaikan', 'Status'];
+        let csv = headers.join(',') + '\n';
+
+        allData.forEach((row) => {
+            const values = [
+                row.no || '',
+                row.Timestamp || '',
+                `"${(row.pesan || '').replace(/"/g, '""')}"`,
+                `"${(row.kategori || '').replace(/"/g, '""')}"`,
+                `"${(row.perbaikan || '').replace(/"/g, '""')}"`,
+                row.Status || 'Belum Dibaca'
+            ];
+            csv += values.join(',') + '\n';
+        });
+
+        // Download
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `feedback_export_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+
+        showToast('📥 Data berhasil diexport', 'success');
+    }
+
+    // ========== TOAST ==========
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // ========== SIDEBAR TOGGLE ==========
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboard();
+    });
+
+    // Tutup sidebar saat klik di luar (mobile)
+    document.addEventListener('click', function(e) {
+        const sidebar = document.getElementById('sidebar');
+        const hamburger = document.getElementById('hamburgerBtn');
+        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+                sidebar.classList.remove('open');
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
