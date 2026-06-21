@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Kritik & Saran</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/admin/manifest.json">
+    <meta name="theme-color" content="#00f2fe">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Feedback Admin">
+    <link rel="apple-touch-icon" href="/admin/icons/icon-192.png">
+    
     <style>
         * {
             box-sizing: border-box;
@@ -20,7 +29,128 @@
             padding: 20px;
         }
 
-        /* SIDEBAR */
+        /* ========== LOGIN PAGE ========== */
+        .login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            margin: -20px;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px 35px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-container .login-icon {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff007f, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 8px;
+            background: linear-gradient(45deg, #ffffff, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-container .subtitle {
+            text-align: center;
+            color: #8899aa;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .login-container .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-container label {
+            display: block;
+            font-size: 13px;
+            color: #00f2fe;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .login-container input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .login-container input[type="password"]:focus {
+            border-color: #00f2fe;
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .login-container .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.3);
+        }
+
+        .login-container .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.5);
+        }
+
+        .login-container .btn-login:active {
+            transform: translateY(1px);
+        }
+
+        .login-container .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-container .error-msg {
+            background: rgba(255, 68, 85, 0.1);
+            border: 1px solid rgba(255, 68, 85, 0.3);
+            color: #ff4455;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+        }
+
+        .login-container .error-msg.show {
+            display: block;
+        }
+
+        /* ========== SIDEBAR ========== */
         .sidebar {
             position: fixed;
             left: 0;
@@ -94,13 +224,65 @@
             font-size: 11px;
         }
 
-        /* MAIN CONTENT */
+        .nav-item.logout-item {
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 20px;
+            color: #ff4455;
+        }
+
+        .nav-item.logout-item:hover {
+            background: rgba(255, 68, 85, 0.1);
+            color: #ff4455;
+        }
+
+        /* ========== MAIN CONTENT ========== */
         .main-content {
             margin-left: 270px;
             padding: 20px 30px 30px;
         }
 
-        /* HEADER */
+        /* ========== HIDE CONTENT BY DEFAULT ========== */
+        #appContent {
+            display: none;
+        }
+
+        #appContent.visible {
+            display: block;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .hamburger {
+                display: block !important;
+                background: none;
+                border: none;
+                color: #e0e0e0;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 8px;
+            }
+        }
+
+        .hamburger {
+            display: none;
+        }
+
+        /* ========== OTHER STYLES (sama seperti sebelumnya) ========== */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -144,7 +326,6 @@
             color: #00f2fe;
         }
 
-        /* STATS CARDS */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -181,7 +362,6 @@
         .stat-card.warning .stat-number { color: #ffcc00; }
         .stat-card.danger .stat-number { color: #ff4455; }
 
-        /* FILTER */
         .filter-bar {
             display: flex;
             gap: 12px;
@@ -211,7 +391,6 @@
             background: #1a2a33;
         }
 
-        /* TABLE */
         .table-container {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -309,7 +488,6 @@
         }
         .btn-view:hover { background: rgba(255, 255, 255, 0.1); }
 
-        /* LOADING */
         .loading {
             text-align: center;
             padding: 60px 20px;
@@ -322,7 +500,6 @@
             display: block;
         }
 
-        /* EMPTY STATE */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -335,7 +512,6 @@
             opacity: 0.3;
         }
 
-        /* MODAL DETAIL */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -406,38 +582,6 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 280px;
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 15px;
-            }
-
-            .hamburger {
-                display: block !important;
-                background: none;
-                border: none;
-                color: #e0e0e0;
-                font-size: 24px;
-                cursor: pointer;
-                padding: 8px;
-            }
-        }
-
-        .hamburger {
-            display: none;
-        }
-
-        /* Toast Notification */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -477,98 +621,133 @@
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-        <i class="fa-solid fa-envelope-open-text"></i>
-        <h2>Feedback Admin</h2>
-        <small>Manajemen Kritik & Saran</small>
-    </div>
-
-    <div class="nav-item active" onclick="loadDashboard()">
-        <i class="fa-solid fa-gauge-high"></i> Dashboard
-    </div>
-    <div class="nav-item" onclick="loadData()">
-        <i class="fa-solid fa-list"></i> Semua Masukan
-        <span class="badge" id="totalBadge">0</span>
-    </div>
-    <div class="nav-item" onclick="loadUnread()">
-        <i class="fa-solid fa-envelope"></i> Belum Dibaca
-        <span class="badge" id="unreadBadge">0</span>
-    </div>
-    <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
-        <div class="nav-item" onclick="refreshData()">
-            <i class="fa-solid fa-rotate"></i> Refresh
+<!-- ==================== LOGIN PAGE ==================== -->
+<div class="login-page" id="loginPage">
+    <div class="login-container">
+        <div class="login-icon">
+            <i class="fa-solid fa-lock"></i>
         </div>
-        <div class="nav-item" onclick="window.open('https://kritik-saran-kamal.pages.dev/', '_blank')">
-            <i class="fa-solid fa-external-link-alt"></i> Buka Form
+        <h2>Admin Access</h2>
+        <p class="subtitle">Masukkan password untuk mengakses dashboard</p>
+        
+        <div class="error-msg" id="loginError">
+            <i class="fa-solid fa-exclamation-circle"></i> Password salah! Silakan coba lagi.
         </div>
+        
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="passwordInput"><i class="fa-solid fa-key"></i> Password</label>
+                <input type="password" id="passwordInput" placeholder="Masukkan password admin..." required autofocus>
+            </div>
+            <button type="submit" class="btn-login" id="loginBtn">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> Masuk
+            </button>
+        </form>
+        
+        <p style="text-align: center; margin-top: 20px; color: #556677; font-size: 12px;">
+            <i class="fa-solid fa-shield-halved"></i> Hanya untuk akses terbatas
+        </p>
     </div>
 </div>
 
-<!-- MAIN CONTENT -->
-<div class="main-content">
-    <!-- Header -->
-    <div class="page-header">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <h1 id="pageTitle">📊 Dashboard</h1>
+<!-- ==================== MAIN APP ==================== -->
+<div id="appContent">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-envelope-open-text"></i>
+            <h2>Feedback Admin</h2>
+            <small>Manajemen Kritik & Saran</small>
         </div>
-        <div class="header-actions">
-            <button onclick="refreshData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
-            <button onclick="exportData()"><i class="fa-solid fa-download"></i> Export</button>
+
+        <div class="nav-item active" onclick="loadDashboard()">
+            <i class="fa-solid fa-gauge-high"></i> Dashboard
+        </div>
+        <div class="nav-item" onclick="loadData()">
+            <i class="fa-solid fa-list"></i> Semua Masukan
+            <span class="badge" id="totalBadge">0</span>
+        </div>
+        <div class="nav-item" onclick="loadUnread()">
+            <i class="fa-solid fa-envelope"></i> Belum Dibaca
+            <span class="badge" id="unreadBadge">0</span>
+        </div>
+        <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+            <div class="nav-item" onclick="refreshData()">
+                <i class="fa-solid fa-rotate"></i> Refresh
+            </div>
+            <div class="nav-item" onclick="window.open('https://kritik-saran-kamal.pages.dev', '_blank')">
+                <i class="fa-solid fa-external-link-alt"></i> Buka Form
+            </div>
+            <div class="nav-item logout-item" onclick="handleLogout()">
+                <i class="fa-solid fa-sign-out-alt"></i> Logout
+            </div>
         </div>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-grid" id="statsGrid">
-        <div class="stat-card primary">
-            <span class="stat-icon"><i class="fa-solid fa-inbox"></i></span>
-            <div class="stat-number" id="statTotal">0</div>
-            <div class="stat-label">Total Masukan</div>
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="page-header">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h1 id="pageTitle">📊 Dashboard</h1>
+            </div>
+            <div class="header-actions">
+                <button onclick="refreshData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                <button onclick="exportData()"><i class="fa-solid fa-download"></i> Export</button>
+            </div>
         </div>
-        <div class="stat-card danger">
-            <span class="stat-icon"><i class="fa-solid fa-envelope"></i></span>
-            <div class="stat-number" id="statUnread">0</div>
-            <div class="stat-label">Belum Dibaca</div>
-        </div>
-        <div class="stat-card success">
-            <span class="stat-icon"><i class="fa-solid fa-check-circle"></i></span>
-            <div class="stat-number" id="statRead">0</div>
-            <div class="stat-label">Sudah Dibaca</div>
-        </div>
-        <div class="stat-card warning">
-            <span class="stat-icon"><i class="fa-solid fa-tags"></i></span>
-            <div class="stat-number" id="statCategories">0</div>
-            <div class="stat-label">Kategori Terisi</div>
-        </div>
-    </div>
 
-    <!-- Filter -->
-    <div class="filter-bar">
-        <input type="text" id="searchInput" placeholder="🔍 Cari pesan..." oninput="applyFilters()">
-        <select id="categoryFilter" onchange="applyFilters()">
-            <option value="">Semua Kategori</option>
-            <option value="Sikap / Kepribadian">Sikap / Kepribadian</option>
-            <option value="Cara komunikasi">Cara komunikasi</option>
-            <option value="Penampilan">Penampilan</option>
-            <option value="Lainnya">Lainnya</option>
-        </select>
-        <select id="statusFilter" onchange="applyFilters()">
-            <option value="">Semua Status</option>
-            <option value="Belum Dibaca">Belum Dibaca</option>
-            <option value="Sudah Dibaca">Sudah Dibaca</option>
-        </select>
-    </div>
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card primary">
+                <span class="stat-icon"><i class="fa-solid fa-inbox"></i></span>
+                <div class="stat-number" id="statTotal">0</div>
+                <div class="stat-label">Total Masukan</div>
+            </div>
+            <div class="stat-card danger">
+                <span class="stat-icon"><i class="fa-solid fa-envelope"></i></span>
+                <div class="stat-number" id="statUnread">0</div>
+                <div class="stat-label">Belum Dibaca</div>
+            </div>
+            <div class="stat-card success">
+                <span class="stat-icon"><i class="fa-solid fa-check-circle"></i></span>
+                <div class="stat-number" id="statRead">0</div>
+                <div class="stat-label">Sudah Dibaca</div>
+            </div>
+            <div class="stat-card warning">
+                <span class="stat-icon"><i class="fa-solid fa-tags"></i></span>
+                <div class="stat-number" id="statCategories">0</div>
+                <div class="stat-label">Kategori Terisi</div>
+            </div>
+        </div>
 
-    <!-- Table -->
-    <div class="table-container">
-        <div id="tableContent">
-            <div class="loading">
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                <span>Memuat data...</span>
+        <!-- Filter -->
+        <div class="filter-bar">
+            <input type="text" id="searchInput" placeholder="🔍 Cari pesan..." oninput="applyFilters()">
+            <select id="categoryFilter" onchange="applyFilters()">
+                <option value="">Semua Kategori</option>
+                <option value="Sikap / Kepribadian">Sikap / Kepribadian</option>
+                <option value="Cara komunikasi">Cara komunikasi</option>
+                <option value="Penampilan">Penampilan</option>
+                <option value="Lainnya">Lainnya</option>
+            </select>
+            <select id="statusFilter" onchange="applyFilters()">
+                <option value="">Semua Status</option>
+                <option value="Belum Dibaca">Belum Dibaca</option>
+                <option value="Sudah Dibaca">Sudah Dibaca</option>
+            </select>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <div id="tableContent">
+                <div class="loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Memuat data...</span>
+                </div>
             </div>
         </div>
     </div>
@@ -586,13 +765,117 @@
 <!-- Toast Notification -->
 <div class="toast" id="toast"></div>
 
+<!-- Register Service Worker -->
 <script>
-    // Konfigurasi
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzDQj02zqB64f3Svjj4hux92B-qc-coBRISQqztZncNPaFSCXm5iVN7vtdEBAj2Q_Y/exec';
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/admin/sw.js')
+                .then(registration => {
+                    console.log('Service Worker registered successfully:', registration);
+                })
+                .catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                });
+        });
+    }
+</script>
+
+<script>
+    // ============================================================
+    // KONFIGURASI
+    // ============================================================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDQj02zqB64f3Svjj4hux92B-qc-coBRISQqztZncNPaFSCXm5iVN7vtdEBAj2Q_Y/exec';
+    const ADMIN_PASSWORD = 'protesanewong'; // GANTI DENGAN PASSWORD YANG INGIN ANDA GUNAKAN
+    
     let allData = [];
     let currentFilter = 'all';
+    let isLoggedIn = false;
 
-    // ========== LOAD FUNCTIONS ==========
+    // ============================================================
+    // AUTHENTICATION
+    // ============================================================
+    
+    // Cek session di localStorage
+    function checkSession() {
+        const session = localStorage.getItem('admin_session');
+        if (session === 'true') {
+            isLoggedIn = true;
+            showApp();
+        } else {
+            isLoggedIn = false;
+            showLogin();
+        }
+    }
+
+    function handleLogin(event) {
+        event.preventDefault();
+        
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMsg = document.getElementById('loginError');
+        const password = passwordInput.value.trim();
+        
+        // Validasi input kosong
+        if (!password) {
+            errorMsg.textContent = '⚠️ Password tidak boleh kosong!';
+            errorMsg.classList.add('show');
+            return;
+        }
+        
+        // Disable button
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa...';
+        errorMsg.classList.remove('show');
+        
+        // Simulasi pengecekan (bisa ditambah delay untuk efek)
+        setTimeout(() => {
+            if (password === ADMIN_PASSWORD) {
+                // Login sukses
+                localStorage.setItem('admin_session', 'true');
+                isLoggedIn = true;
+                showApp();
+                showToast('✅ Selamat datang, Admin!', 'success');
+            } else {
+                // Login gagal
+                errorMsg.textContent = '❌ Password salah! Silakan coba lagi.';
+                errorMsg.classList.add('show');
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+            
+            // Reset button
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Masuk';
+        }, 500);
+    }
+
+    function handleLogout() {
+        if (confirm('Yakin ingin logout?')) {
+            localStorage.removeItem('admin_session');
+            isLoggedIn = false;
+            showLogin();
+            showToast('👋 Anda telah logout', 'success');
+        }
+    }
+
+    function showLogin() {
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('appContent').classList.remove('visible');
+        document.getElementById('appContent').style.display = 'none';
+    }
+
+    function showApp() {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('appContent').style.display = 'block';
+        document.getElementById('appContent').classList.add('visible');
+        
+        // Load data setelah login
+        loadDashboard();
+    }
+
+    // ============================================================
+    // LOAD FUNCTIONS
+    // ============================================================
     function loadDashboard() {
         document.getElementById('pageTitle').innerHTML = '📊 Dashboard';
         loadStats();
@@ -625,12 +908,14 @@
         }
     }
 
-    // ========== FETCH DATA ==========
+    // ============================================================
+    // FETCH DATA
+    // ============================================================
     function fetchData() {
         const tableContent = document.getElementById('tableContent');
         tableContent.innerHTML = `<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i><span>Memuat data...</span></div>`;
 
-        fetch(`${scriptURL}?action=getData`)
+        fetch(`${SCRIPT_URL}?action=getData`)
             .then(response => response.json())
             .then(result => {
                 console.log('Data received:', result);
@@ -655,9 +940,11 @@
         fetchData();
     }
 
-    // ========== LOAD STATS ==========
+    // ============================================================
+    // LOAD STATS
+    // ============================================================
     function loadStats() {
-        fetch(`${scriptURL}?action=getStats`)
+        fetch(`${SCRIPT_URL}?action=getStats`)
             .then(response => response.json())
             .then(result => {
                 console.log('Stats received:', result);
@@ -682,7 +969,9 @@
         document.getElementById('unreadBadge').textContent = unread;
     }
 
-    // ========== APPLY FILTERS ==========
+    // ============================================================
+    // APPLY FILTERS
+    // ============================================================
     function applyFilters() {
         const search = document.getElementById('searchInput').value.toLowerCase();
         const category = document.getElementById('categoryFilter').value;
@@ -690,12 +979,10 @@
 
         let filtered = allData;
 
-        // Filter berdasarkan tab
         if (currentFilter === 'unread') {
             filtered = filtered.filter(d => d.Status !== 'Sudah Dibaca');
         }
 
-        // Filter search
         if (search) {
             filtered = filtered.filter(d => {
                 const pesan = (d.pesan || '').toLowerCase();
@@ -707,7 +994,6 @@
             });
         }
 
-        // Filter kategori
         if (category) {
             filtered = filtered.filter(d => {
                 const kat = d.kategori || '';
@@ -718,7 +1004,6 @@
             });
         }
 
-        // Filter status
         if (status) {
             filtered = filtered.filter(d => d.Status === status);
         }
@@ -726,7 +1011,9 @@
         renderTable(filtered);
     }
 
-    // ========== RENDER TABLE ==========
+    // ============================================================
+    // RENDER TABLE
+    // ============================================================
     function renderTable(data) {
         const tableContent = document.getElementById('tableContent');
 
@@ -791,7 +1078,9 @@
         tableContent.innerHTML = html;
     }
 
-    // ========== UTILITY FUNCTIONS ==========
+    // ============================================================
+    // UTILITY FUNCTIONS
+    // ============================================================
     function truncateText(text, maxLength) {
         if (!text) return '-';
         return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
@@ -801,7 +1090,9 @@
         return allData.find(d => d.no === no) || null;
     }
 
-    // ========== VIEW DETAIL ==========
+    // ============================================================
+    // VIEW DETAIL
+    // ============================================================
     function viewDetail(no) {
         const row = getRowData(no);
         if (!row) {
@@ -843,48 +1134,61 @@
         document.getElementById('detailModal').classList.remove('active');
     }
 
-    // ========== MARK AS READ ==========
+    // ============================================================
+    // MARK AS READ
+    // ============================================================
     function markAsRead(no) {
         if (!confirm('Tandai masukan ini sebagai sudah dibaca?')) return;
 
-        fetch(`${scriptURL}?action=updateStatus&rowNo=${no}&status=Sudah Dibaca`)
+        fetch(`${SCRIPT_URL}?action=updateStatus&rowNo=${no}&status=Sudah Dibaca`)
             .then(response => response.json())
             .then(result => {
+                console.log('Update status result:', result);
                 if (result.result === 'success') {
                     showToast('✅ Berhasil ditandai sudah dibaca', 'success');
                     refreshData();
                 } else {
-                    showToast('❌ Gagal update status', 'error');
+                    showToast('❌ Gagal update status: ' + (result.error || 'Unknown error'), 'error');
                 }
             })
-            .catch(() => showToast('❌ Terjadi kesalahan', 'error'));
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('❌ Terjadi kesalahan: ' + error.message, 'error');
+            });
     }
 
-    // ========== DELETE ROW ==========
+    // ============================================================
+    // DELETE ROW
+    // ============================================================
     function deleteRow(no) {
         if (!confirm('⚠️ Yakin ingin menghapus masukan ini? Aksi tidak dapat dibatalkan!')) return;
 
-        fetch(`${scriptURL}?action=deleteRow&rowNo=${no}`)
+        fetch(`${SCRIPT_URL}?action=deleteRow&rowNo=${no}`)
             .then(response => response.json())
             .then(result => {
+                console.log('Delete result:', result);
                 if (result.result === 'success') {
                     showToast('🗑️ Data berhasil dihapus', 'success');
                     refreshData();
                 } else {
-                    showToast('❌ Gagal menghapus data', 'error');
+                    showToast('❌ Gagal menghapus data: ' + (result.error || 'Unknown error'), 'error');
                 }
             })
-            .catch(() => showToast('❌ Terjadi kesalahan', 'error'));
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('❌ Terjadi kesalahan: ' + error.message, 'error');
+            });
     }
 
-    // ========== EXPORT DATA ==========
+    // ============================================================
+    // EXPORT DATA
+    // ============================================================
     function exportData() {
         if (!allData || allData.length === 0) {
             showToast('Tidak ada data untuk diexport', 'error');
             return;
         }
 
-        // Buat CSV
         const headers = ['No', 'Timestamp', 'Pesan', 'Kategori', 'Perbaikan', 'Status'];
         let csv = headers.join(',') + '\n';
 
@@ -900,7 +1204,6 @@
             csv += values.join(',') + '\n';
         });
 
-        // Download
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
@@ -913,7 +1216,9 @@
         showToast('📥 Data berhasil diexport', 'success');
     }
 
-    // ========== TOAST ==========
+    // ============================================================
+    // TOAST NOTIFICATION
+    // ============================================================
     function showToast(message, type = 'success') {
         const toast = document.getElementById('toast');
         toast.textContent = message;
@@ -928,14 +1233,18 @@
         }, 3000);
     }
 
-    // ========== SIDEBAR TOGGLE ==========
+    // ============================================================
+    // SIDEBAR TOGGLE
+    // ============================================================
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('open');
     }
 
-    // ========== INIT ==========
+    // ============================================================
+    // INIT
+    // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
-        loadDashboard();
+        checkSession();
     });
 
     // Tutup sidebar saat klik di luar (mobile)
@@ -945,6 +1254,16 @@
         if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
             if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
                 sidebar.classList.remove('open');
+            }
+        }
+    });
+
+    // Enter key untuk login
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !isLoggedIn) {
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.dispatchEvent(new Event('submit'));
             }
         }
     });
