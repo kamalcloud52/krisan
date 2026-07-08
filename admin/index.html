@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Kritik & Saran</title>
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Utama -->
+    <link rel="stylesheet" href="/admin/style.css">
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/admin/manifest.json">
@@ -13,844 +18,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Feedback Admin">
     <link rel="apple-touch-icon" href="/admin/icons/icon-192.png">
-    
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-            color: #1a1a2e;
-        }
-
-        /* ========== LOGIN PAGE ========== */
-        .login-page {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: #f5f7fa;
-            padding: 20px;
-        }
-
-        .login-container {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 40px 35px;
-            width: 100%;
-            max-width: 380px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-        }
-
-        .login-container .login-icon {
-            text-align: center;
-            font-size: 2.4rem;
-            color: #2563eb;
-            margin-bottom: 12px;
-        }
-
-        .login-container h2 {
-            text-align: center;
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a1a2e;
-            margin-bottom: 4px;
-        }
-
-        .login-container .subtitle {
-            text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 28px;
-        }
-
-        .login-container .form-group {
-            margin-bottom: 18px;
-        }
-
-        .login-container label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 6px;
-        }
-
-        .login-container input[type="password"] {
-            width: 100%;
-            padding: 12px 14px;
-            background: #f9fafb;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 10px;
-            color: #1a1a2e;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .login-container input[type="password"]:focus {
-            border-color: #2563eb;
-            background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
-        }
-
-        .login-container .btn-login {
-            width: 100%;
-            padding: 13px;
-            background: #2563eb;
-            border: none;
-            border-radius: 10px;
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .login-container .btn-login:hover {
-            background: #1d4ed8;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
-        }
-
-        .login-container .btn-login:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .login-container .error-msg {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 16px;
-            display: none;
-            text-align: center;
-        }
-
-        .login-container .error-msg.show {
-            display: block;
-        }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #9ca3af;
-            font-size: 12px;
-        }
-
-        /* ========== SIDEBAR ========== */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 240px;
-            height: 100%;
-            background: #ffffff;
-            border-right: 1px solid #e5e7eb;
-            padding: 24px 16px;
-            overflow-y: auto;
-            z-index: 100;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-brand {
-            text-align: center;
-            margin-bottom: 32px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .sidebar-brand i {
-            font-size: 2rem;
-            color: #2563eb;
-        }
-
-        .sidebar-brand h2 {
-            margin-top: 8px;
-            font-size: 17px;
-            font-weight: 700;
-            color: #1a1a2e;
-        }
-
-        .sidebar-brand small {
-            color: #6b7280;
-            font-size: 11px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 14px;
-            border-radius: 10px;
-            color: #4b5563;
-            text-decoration: none;
-            transition: all 0.2s;
-            cursor: pointer;
-            margin-bottom: 2px;
-            gap: 12px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .nav-item:hover {
-            background: #f3f4f6;
-            color: #1a1a2e;
-        }
-
-        .nav-item.active {
-            background: #eff6ff;
-            color: #2563eb;
-        }
-
-        .nav-item i {
-            width: 20px;
-            text-align: center;
-            font-size: 15px;
-        }
-
-        .nav-item .badge {
-            margin-left: auto;
-            background: #2563eb;
-            color: #ffffff;
-            padding: 1px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .nav-item .badge.unread {
-            background: #ef4444;
-        }
-
-        .nav-divider {
-            margin: 16px 0;
-            border-top: 1px solid #f3f4f6;
-        }
-
-        .nav-item.logout {
-            color: #dc2626;
-            margin-top: 8px;
-        }
-
-        .nav-item.logout:hover {
-            background: #fef2f2;
-            color: #dc2626;
-        }
-
-        /* ========== MAIN CONTENT ========== */
-        .main-content {
-            margin-left: 240px;
-            padding: 28px 32px 40px;
-            min-height: 100vh;
-        }
-
-        /* ========== HIDE CONTENT BY DEFAULT ========== */
-        #appContent {
-            display: none;
-        }
-
-        #appContent.visible {
-            display: block;
-        }
-
-        /* ========== HEADER ========== */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .page-header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .hamburger {
-            display: none;
-            background: none;
-            border: none;
-            color: #1a1a2e;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 4px;
-        }
-
-        .page-header h1 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1a1a2e;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .header-actions button {
-            padding: 8px 16px;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 10px;
-            background: #ffffff;
-            color: #4b5563;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .header-actions button:hover {
-            border-color: #2563eb;
-            color: #2563eb;
-            background: #f8faff;
-        }
-
-        /* ========== STATS CARDS ========== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-
-        .stat-card {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 18px 20px;
-            transition: box-shadow 0.2s;
-        }
-
-        .stat-card:hover {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-        }
-
-        .stat-card .stat-number {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a1a2e;
-        }
-
-        .stat-card .stat-label {
-            font-size: 13px;
-            color: #6b7280;
-            margin-top: 2px;
-        }
-
-        .stat-card .stat-icon {
-            float: right;
-            font-size: 20px;
-            color: #9ca3af;
-            margin-top: 2px;
-        }
-
-        .stat-card.primary .stat-number { color: #2563eb; }
-        .stat-card.success .stat-number { color: #16a34a; }
-        .stat-card.warning .stat-number { color: #eab308; }
-        .stat-card.danger .stat-number { color: #dc2626; }
-        .stat-card.primary .stat-icon { color: #2563eb; }
-        .stat-card.success .stat-icon { color: #16a34a; }
-        .stat-card.warning .stat-icon { color: #eab308; }
-        .stat-card.danger .stat-icon { color: #dc2626; }
-
-        /* ========== FILTERS & CUSTOM DROPDOWN SYSTEM ========== */
-        .filter-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .filter-bar input {
-            padding: 9px 14px;
-            background: #ffffff;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 10px;
-            color: #1a1a2e;
-            font-size: 13px;
-            outline: none;
-            transition: all 0.2s;
-            min-width: 150px;
-            height: 38px;
-        }
-
-        .filter-bar input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
-        }
-
-        /* Desain Kustom Menu Dropdown (Bebas dari default browser) */
-        .custom-dropdown {
-            position: relative;
-            min-width: 170px;
-            user-select: none;
-        }
-
-        .dropdown-selected {
-            background: #ffffff;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 9px 36px 9px 14px;
-            font-size: 13px;
-            color: #1a1a2e;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: flex;
-            align-items: center;
-            height: 38px;
-        }
-
-        .dropdown-selected::after {
-            content: "\f078";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            font-size: 10px;
-            color: #6b7280;
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            transition: transform 0.2s, color 0.2s;
-        }
-
-        .custom-dropdown.open .dropdown-selected {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
-        }
-
-        .custom-dropdown.open .dropdown-selected::after {
-            transform: translateY(-50%) rotate(180deg);
-            color: #2563eb;
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            width: 100%;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            padding: 6px;
-            list-style: none;
-            display: none;
-            z-index: 150;
-            max-height: 240px;
-            overflow-y: auto;
-        }
-
-        .custom-dropdown.open .dropdown-menu {
-            display: block;
-        }
-
-        .dropdown-item {
-            padding: 8px 12px;
-            font-size: 13px;
-            color: #4b5563;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .dropdown-item:hover {
-            background: #f3f4f6;
-            color: #1a1a2e;
-        }
-
-        .dropdown-item.active {
-            background: #eff6ff;
-            color: #2563eb;
-            font-weight: 600;
-        }
-
-        /* ========== TABLE ========== */
-        .table-container {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            overflow: hidden;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        thead {
-            background: #f9fafb;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        th {
-            padding: 12px 16px;
-            text-align: left;
-            font-weight: 600;
-            color: #6b7280;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: middle;
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #1a1a2e;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background: #f9fafb;
-        }
-
-        .status-badge {
-            padding: 3px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .status-unread {
-            background: #fef2f2;
-            color: #dc2626;
-        }
-
-        .status-read {
-            background: #f0fdf4;
-            color: #16a34a;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .action-buttons button {
-            padding: 4px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-weight: 500;
-        }
-
-        .btn-view {
-            background: #f3f4f6;
-            color: #4b5563;
-        }
-        .btn-view:hover { background: #e5e7eb; }
-
-        .btn-read {
-            background: #eff6ff;
-            color: #2563eb;
-        }
-        .btn-read:hover { background: #dbeafe; }
-
-        .btn-delete {
-            background: #fef2f2;
-            color: #dc2626;
-        }
-        .btn-delete:hover { background: #fecaca; }
-
-        .row-number {
-            color: #6b7280;
-            font-weight: 600;
-            font-size: 12px;
-        }
-
-        /* ========== EMPTY & LOADING ========== */
-        .loading {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6b7280;
-        }
-
-        .loading i {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            display: block;
-            color: #2563eb;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6b7280;
-        }
-
-        .empty-state i {
-            font-size: 2.6rem;
-            margin-bottom: 12px;
-            display: block;
-            color: #d1d5db;
-        }
-
-        /* ========== MODAL ========== */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-box {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 28px 30px;
-            width: 90%;
-            max-width: 520px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-        }
-
-        .modal-box h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a1a2e;
-            margin-bottom: 20px;
-        }
-
-        .modal-box h3 i {
-            color: #2563eb;
-            margin-right: 10px;
-        }
-
-        .modal-box .detail-item {
-            margin-bottom: 14px;
-        }
-
-        .modal-box .detail-item label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            display: block;
-            margin-bottom: 3px;
-        }
-
-        .modal-box .detail-item .value {
-            background: #f9fafb;
-            padding: 10px 14px;
-            border-radius: 8px;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            font-size: 14px;
-            color: #1a1a2e;
-        }
-
-        .modal-close {
-            padding: 10px 24px;
-            background: #f3f4f6;
-            border: none;
-            border-radius: 10px;
-            color: #1a1a2e;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 16px;
-            width: 100%;
-            transition: background 0.2s;
-        }
-
-        .modal-close:hover {
-            background: #e5e7eb;
-        }
-
-        /* Modal Logout Eksklusif */
-        .modal-logout-box {
-            max-width: 400px;
-            text-align: center;
-            padding: 32px 24px;
-        }
-
-        .modal-logout-box .logout-icon-wrapper {
-            width: 64px;
-            height: 64px;
-            background: #fef2f2;
-            color: #dc2626;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin: 0 auto 16px;
-        }
-
-        .modal-logout-box p {
-            color: #4b5563;
-            font-size: 14px;
-            margin-bottom: 24px;
-            margin-top: 6px;
-        }
-
-        .modal-logout-actions {
-            display: flex;
-            gap: 12px;
-        }
-
-        .btn-modal-confirm {
-            flex: 1;
-            padding: 11px;
-            background: #dc2626;
-            color: #ffffff;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-modal-confirm:hover { background: #b91c1c; }
-
-        .btn-modal-cancel {
-            flex: 1;
-            padding: 11px;
-            background: #f3f4f6;
-            color: #4b5563;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-modal-cancel:hover { background: #e5e7eb; }
-
-        /* ========== TOAST ========== */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            padding: 12px 20px;
-            border-radius: 10px;
-            color: #1a1a2e;
-            font-weight: 600;
-            font-size: 14px;
-            z-index: 2000;
-            opacity: 0;
-            transform: translateY(16px);
-            transition: all 0.3s ease;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .toast.success {
-            border-color: #16a34a;
-            color: #16a34a;
-        }
-
-        .toast.error {
-            border-color: #dc2626;
-            color: #dc2626;
-        }
-
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 280px;
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 20px 16px 30px;
-            }
-
-            .hamburger {
-                display: block;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .page-header h1 {
-                font-size: 18px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-
-            .stat-card .stat-number {
-                font-size: 22px;
-            }
-
-            .login-container {
-                padding: 30px 24px;
-            }
-        }
-    </style>
 </head>
 <body>
 
@@ -858,13 +25,13 @@
 <div class="login-page" id="loginPage">
     <div class="login-container">
         <div class="login-icon">
-            <i class="fa-solid fa-lock"></i>
+            <i class="fa-regular fa-lock"></i>
         </div>
         <h2>Admin Access</h2>
         <p class="subtitle">Masukkan password untuk mengakses dashboard</p>
 
         <div class="error-msg" id="loginError">
-            <i class="fa-solid fa-circle-exclamation"></i> Password salah! Silakan coba lagi.
+            <i class="fa-regular fa-circle-exclamation"></i> Password salah! Silakan coba lagi.
         </div>
 
         <form id="loginForm" onsubmit="handleLogin(event)">
@@ -873,12 +40,12 @@
                 <input type="password" id="passwordInput" placeholder="Masukkan password admin..." required autofocus>
             </div>
             <button type="submit" class="btn-login" id="loginBtn">
-                Masuk <i class="fa-solid fa-arrow-right"></i>
+                Masuk <i class="fa-regular fa-arrow-right"></i>
             </button>
         </form>
 
         <p class="login-footer">
-            <i class="fa-solid fa-shield-halved"></i> Hanya untuk akses terbatas
+            <i class="fa-regular fa-shield"></i> Hanya untuk akses terbatas
         </p>
     </div>
 </div>
@@ -888,36 +55,36 @@
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <i class="fa-solid fa-envelope"></i>
+            <i class="fa-regular fa-envelope"></i>
             <h2>Feedback Admin</h2>
             <small>Manajemen Kritik & Saran</small>
         </div>
 
         <div class="nav-item active" onclick="loadDashboard()">
-            <i class="fa-solid fa-chart-pie"></i> Dashboard
+            <i class="fa-regular fa-chart-pie"></i> Dashboard
         </div>
         <div class="nav-item" onclick="loadData()">
-            <i class="fa-solid fa-list"></i> Semua Masukan
+            <i class="fa-regular fa-list"></i> Semua Masukan
             <span class="badge" id="totalBadge">0</span>
         </div>
         <div class="nav-item" onclick="loadUnread()">
-            <i class="fa-solid fa-envelope-open-text"></i> Belum Dibaca
+            <i class="fa-regular fa-envelope"></i> Belum Dibaca
             <span class="badge unread" id="unreadBadge">0</span>
         </div>
 
         <div class="nav-divider"></div>
 
         <div class="nav-item" onclick="refreshData()">
-            <i class="fa-solid fa-rotate"></i> Refresh Data
+            <i class="fa-regular fa-rotate"></i> Refresh
         </div>
         <div class="nav-item" onclick="window.open('https://kritik-saran-kamal.pages.dev', '_blank')">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Form
+            <i class="fa-regular fa-arrow-up-right-from-square"></i> Buka Form
         </div>
 
         <div class="nav-divider"></div>
 
-        <div class="nav-item logout" onclick="openLogoutModal()">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        <div class="nav-item logout" onclick="handleLogout()">
+            <i class="fa-regular fa-right-from-bracket"></i> Logout
         </div>
     </div>
 
@@ -927,71 +94,62 @@
         <div class="page-header">
             <div class="page-header-left">
                 <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
-                    <i class="fa-solid fa-bars"></i>
+                    <i class="fa-regular fa-bars"></i>
                 </button>
                 <h1 id="pageTitle">Dashboard</h1>
             </div>
             <div class="header-actions">
-                <button onclick="exportData()"><i class="fa-solid fa-download"></i> Export CSV</button>
+                <button onclick="refreshData()"><i class="fa-regular fa-rotate"></i> Refresh</button>
+                <button onclick="exportData()"><i class="fa-regular fa-download"></i> Export</button>
             </div>
         </div>
 
         <!-- Stats -->
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card primary">
-                <span class="stat-icon"><i class="fa-solid fa-inbox"></i></span>
+                <span class="stat-icon"><i class="fa-regular fa-inbox"></i></span>
                 <div class="stat-number" id="statTotal">0</div>
                 <div class="stat-label">Total Masukan</div>
             </div>
             <div class="stat-card danger">
-                <span class="stat-icon"><i class="fa-solid fa-envelope"></i></span>
+                <span class="stat-icon"><i class="fa-regular fa-envelope"></i></span>
                 <div class="stat-number" id="statUnread">0</div>
                 <div class="stat-label">Belum Dibaca</div>
             </div>
             <div class="stat-card success">
-                <span class="stat-icon"><i class="fa-solid fa-circle-check"></i></span>
+                <span class="stat-icon"><i class="fa-regular fa-circle-check"></i></span>
                 <div class="stat-number" id="statRead">0</div>
                 <div class="stat-label">Sudah Dibaca</div>
             </div>
             <div class="stat-card warning">
-                <span class="stat-icon"><i class="fa-solid fa-tag"></i></span>
+                <span class="stat-icon"><i class="fa-regular fa-tag"></i></span>
                 <div class="stat-number" id="statCategories">0</div>
                 <div class="stat-label">Kategori Terisi</div>
             </div>
         </div>
 
-        <!-- Filter Bar -->
+        <!-- Filter -->
         <div class="filter-bar">
             <input type="text" id="searchInput" placeholder="Cari pesan..." oninput="applyFilters()">
-            
-            <!-- Kustom Dropdown Kategori -->
-            <div class="custom-dropdown" id="categoryDropdown">
-                <div class="dropdown-selected" onclick="toggleDropdown('categoryDropdown')">Semua Kategori</div>
-                <ul class="dropdown-menu">
-                    <li class="dropdown-item active" onclick="selectDropdownOption('categoryDropdown', '', 'Semua Kategori')">Semua Kategori</li>
-                    <li class="dropdown-item" onclick="selectDropdownOption('categoryDropdown', 'Sikap / Kepribadian', 'Sikap / Kepribadian')">Sikap / Kepribadian</li>
-                    <li class="dropdown-item" onclick="selectDropdownOption('categoryDropdown', 'Cara komunikasi', 'Cara komunikasi')">Cara komunikasi</li>
-                    <li class="dropdown-item" onclick="selectDropdownOption('categoryDropdown', 'Penampilan', 'Penampilan')">Penampilan</li>
-                    <li class="dropdown-item" onclick="selectDropdownOption('categoryDropdown', 'Lainnya', 'Lainnya')">Lainnya</li>
-                </ul>
-            </div>
-
-            <!-- Kustom Dropdown Status -->
-            <div class="custom-dropdown" id="statusDropdown">
-                <div class="dropdown-selected" onclick="toggleDropdown('statusDropdown')">Semua Status</div>
-                <ul class="dropdown-menu">
-                    <li class="dropdown-item active" onclick="selectDropdownOption('statusDropdown', '', 'Semua Status')">Semua Status</li>
-                    <li class="dropdown-item" onclick="selectDropdownOption('statusDropdown', 'Belum Dibaca', 'Belum Dibaca')">Belum Dibaca</li>
-                    <li class="dropdown-item" onclick="selectDropdownOption('statusDropdown', 'Sudah Dibaca', 'Sudah Dibaca')">Sudah Dibaca</li>
-                </ul>
-            </div>
+            <select id="categoryFilter" onchange="applyFilters()">
+                <option value="">Semua Kategori</option>
+                <option value="Sikap / Kepribadian">Sikap / Kepribadian</option>
+                <option value="Cara komunikasi">Cara komunikasi</option>
+                <option value="Penampilan">Penampilan</option>
+                <option value="Lainnya">Lainnya</option>
+            </select>
+            <select id="statusFilter" onchange="applyFilters()">
+                <option value="">Semua Status</option>
+                <option value="Belum Dibaca">Belum Dibaca</option>
+                <option value="Sudah Dibaca">Sudah Dibaca</option>
+            </select>
         </div>
 
         <!-- Table -->
         <div class="table-container">
             <div id="tableContent">
                 <div class="loading">
-                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <i class="fa-regular fa-spinner fa-spin"></i>
                     <span>Memuat data...</span>
                 </div>
             </div>
@@ -999,34 +157,20 @@
     </div>
 </div>
 
-<!-- Modal Detail -->
+<!-- ==================== MODAL DETAIL ==================== -->
 <div class="modal-overlay" id="detailModal">
     <div class="modal-box">
-        <h3><i class="fa-solid fa-file-lines"></i> Detail Masukan</h3>
+        <h3><i class="fa-regular fa-file-lines"></i> Detail Masukan</h3>
         <div id="detailContent"></div>
         <button class="modal-close" onclick="closeDetail()">Tutup</button>
     </div>
 </div>
 
-<!-- Modal Konfirmasi Logout Kustom -->
-<div class="modal-overlay" id="logoutModal">
-    <div class="modal-box modal-logout-box">
-        <div class="logout-icon-wrapper">
-            <i class="fa-solid fa-right-from-bracket"></i>
-        </div>
-        <h3>Konfirmasi Keluar</h3>
-        <p>Apakah Anda yakin ingin mengakhiri sesi pengerjaan dan keluar dari halaman admin?</p>
-        <div class="modal-logout-actions">
-            <button class="btn-modal-cancel" onclick="closeLogoutModal()">Batal</button>
-            <button class="btn-modal-confirm" onclick="handleLogout()">Keluar</button>
-        </div>
-    </div>
-</div>
-
-<!-- Toast Notification -->
+<!-- ==================== TOAST NOTIFICATION ==================== -->
 <div class="toast" id="toast"></div>
 
-<!-- Register Service Worker -->
+<!-- ==================== JAVASCRIPT ==================== -->
+<!-- Service Worker Registration -->
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -1041,548 +185,8 @@
     }
 </script>
 
-<script>
-    // ============================================================
-    // KONFIGURASI & STATE MANAGEMENT
-    // ============================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDQj02zqB64f3Svjj4hux92B-qc-coBRISQqztZncNPaFSCXm5iVN7vtdEBAj2Q_Y/exec';
-    const ADMIN_PASSWORD = 'protesanewong';
-    
-    let allData = [];
-    let currentFilter = 'all';
-    let isLoggedIn = false;
-
-    // Nilai filter aktif dari Custom Dropdown
-    let filterValues = {
-        category: '',
-        status: ''
-    };
-
-    // ============================================================
-    // CUSTOM DROPDOWN CONTROLLER
-    // ============================================================
-    function toggleDropdown(dropdownId) {
-        const dropdown = document.getElementById(dropdownId);
-        const isOpen = dropdown.classList.contains('open');
-        
-        // Tutup semua dropdown lain terlebih dahulu
-        closeAllDropdowns();
-        
-        if (!isOpen) {
-            dropdown.classList.add('open');
-        }
-    }
-
-    function selectDropdownOption(dropdownId, value, text) {
-        const dropdown = document.getElementById(dropdownId);
-        dropdown.querySelector('.dropdown-selected').textContent = text;
-        
-        // Update state value filter
-        if (dropdownId === 'categoryDropdown') {
-            filterValues.category = value;
-        } else if (dropdownId === 'statusDropdown') {
-            filterValues.status = value;
-        }
-
-        // Atur status class active pada item list
-        dropdown.querySelectorAll('.dropdown-item').forEach(item => {
-            if (item.textContent === text) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-
-        dropdown.classList.remove('open');
-        applyFilters(); // Jalankan penyaringan data otomatis
-    }
-
-    function closeAllDropdowns() {
-        document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
-            dropdown.classList.remove('open');
-        });
-    }
-
-    // Reset dropdown visual jika memuat ulang halaman
-    function resetDropdownVisuals() {
-        document.getElementById('categoryDropdown').querySelector('.dropdown-selected').textContent = 'Semua Kategori';
-        document.getElementById('statusDropdown').querySelector('.dropdown-selected').textContent = 'Semua Status';
-        filterValues.category = '';
-        filterValues.status = '';
-        
-        document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
-            dropdown.querySelectorAll('.dropdown-item').forEach((item, idx) => {
-                if (idx === 0) item.classList.add('active');
-                else item.classList.remove('active');
-            });
-        });
-    }
-
-    // ============================================================
-    // AUTHENTICATION
-    // ============================================================
-    function checkSession() {
-        const session = localStorage.getItem('admin_session');
-        if (session === 'true') {
-            isLoggedIn = true;
-            showApp();
-        } else {
-            isLoggedIn = false;
-            showLogin();
-        }
-    }
-
-    function handleLogin(event) {
-        event.preventDefault();
-        
-        const passwordInput = document.getElementById('passwordInput');
-        const loginBtn = document.getElementById('loginBtn');
-        const errorMsg = document.getElementById('loginError');
-        const password = passwordInput.value.trim();
-        
-        if (!password) {
-            errorMsg.textContent = 'Password tidak boleh kosong!';
-            errorMsg.classList.add('show');
-            return;
-        }
-        
-        loginBtn.disabled = true;
-        loginBtn.innerHTML = 'Memeriksa <i class="fa-solid fa-spinner fa-spin"></i>';
-        errorMsg.classList.remove('show');
-        
-        setTimeout(() => {
-            if (password === ADMIN_PASSWORD) {
-                localStorage.setItem('admin_session', 'true');
-                isLoggedIn = true;
-                showApp();
-                showToast('Selamat datang, Admin!', 'success');
-            } else {
-                errorMsg.textContent = 'Password salah! Silakan coba lagi.';
-                errorMsg.classList.add('show');
-                passwordInput.value = '';
-                passwordInput.focus();
-            }
-            
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = 'Masuk <i class="fa-solid fa-arrow-right"></i>';
-        }, 500);
-    }
-
-    function openLogoutModal() {
-        document.getElementById('logoutModal').classList.add('active');
-    }
-
-    function closeLogoutModal() {
-        document.getElementById('logoutModal').classList.remove('active');
-    }
-
-    function handleLogout() {
-        closeLogoutModal();
-        localStorage.removeItem('admin_session');
-        isLoggedIn = false;
-        showLogin();
-        showToast('Anda telah logout', 'success');
-    }
-
-    function showLogin() {
-        document.getElementById('loginPage').style.display = 'flex';
-        document.getElementById('appContent').classList.remove('visible');
-        document.getElementById('appContent').style.display = 'none';
-    }
-
-    function showApp() {
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('appContent').style.display = 'block';
-        document.getElementById('appContent').classList.add('visible');
-        loadDashboard();
-    }
-
-    // ============================================================
-    // LOAD FUNCTIONS
-    // ============================================================
-    function loadDashboard() {
-        document.getElementById('pageTitle').textContent = 'Dashboard';
-        resetDropdownVisuals();
-        loadStats();
-        fetchData();
-        setActiveNav('dashboard');
-    }
-
-    function loadData() {
-        currentFilter = 'all';
-        document.getElementById('pageTitle').textContent = 'Semua Masukan';
-        resetDropdownVisuals();
-        fetchData();
-        setActiveNav('data');
-    }
-
-    function loadUnread() {
-        currentFilter = 'unread';
-        document.getElementById('pageTitle').textContent = 'Belum Dibaca';
-        resetDropdownVisuals();
-        fetchData();
-        setActiveNav('unread');
-    }
-
-    function setActiveNav(page) {
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        if (page === 'dashboard') {
-            document.querySelector('.nav-item:nth-child(1)').classList.add('active');
-        } else if (page === 'data') {
-            document.querySelector('.nav-item:nth-child(2)').classList.add('active');
-        } else if (page === 'unread') {
-            document.querySelector('.nav-item:nth-child(3)').classList.add('active');
-        }
-    }
-
-    // ============================================================
-    // FETCH DATA
-    // ============================================================
-    function fetchData() {
-        const tableContent = document.getElementById('tableContent');
-        tableContent.innerHTML = `<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i><span>Memuat data...</span></div>`;
-
-        fetch(`${SCRIPT_URL}?action=getData`)
-            .then(response => response.json())
-            .then(result => {
-                if (result.result === 'success') {
-                    allData = result.data || [];
-                    updateBadges();
-                    applyFilters();
-                    loadStats();
-                } else {
-                    tableContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Gagal memuat data: ${result.error || 'Unknown error'}</p></div>`;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                tableContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-wifi-slash"></i><p>Gagal terhubung ke server: ${error.message}</p></div>`;
-            });
-    }
-
-    function refreshData() {
-        showToast('Merefresh data...', 'success');
-        fetchData();
-    }
-
-    function loadStats() {
-        fetch(`${SCRIPT_URL}?action=getStats`)
-            .then(response => response.json())
-            .then(result => {
-                if (result.result === 'success') {
-                    const stats = result.stats;
-                    document.getElementById('statTotal').textContent = stats.total || 0;
-                    document.getElementById('statUnread').textContent = stats.unread || 0;
-                    document.getElementById('statRead').textContent = stats.read || 0;
-                    document.getElementById('statCategories').textContent = Object.keys(stats.byCategory || {}).length || 0;
-                    
-                    document.getElementById('totalBadge').textContent = stats.total || 0;
-                    document.getElementById('unreadBadge').textContent = stats.unread || 0;
-                }
-            })
-            .catch(console.error);
-    }
-
-    function updateBadges() {
-        const total = allData.length;
-        const unread = allData.filter(d => d.Status !== 'Sudah Dibaca').length;
-        document.getElementById('totalBadge').textContent = total;
-        document.getElementById('unreadBadge').textContent = unread;
-    }
-
-    // ============================================================
-    // APPLY FILTERS (MENGGUNAKAN VARIABEL FILTER KUSTOM)
-    // ============================================================
-    function applyFilters() {
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const category = filterValues.category;
-        const status = filterValues.status;
-
-        let filtered = allData;
-
-        if (currentFilter === 'unread') {
-            filtered = filtered.filter(d => d.Status !== 'Sudah Dibaca');
-        }
-
-        if (search) {
-            filtered = filtered.filter(d => {
-                const pesan = (d.pesan || '').toLowerCase();
-                const kategori = (d.kategori || '').toLowerCase();
-                const perbaikan = (d.perbaikan || '').toLowerCase();
-                return pesan.includes(search) || 
-                       kategori.includes(search) || 
-                       perbaikan.includes(search);
-            });
-        }
-
-        if (category) {
-            filtered = filtered.filter(d => {
-                const kat = d.kategori || '';
-                if (category === 'Lainnya') {
-                    return kat.startsWith('Lainnya:');
-                }
-                return kat === category;
-            });
-        }
-
-        if (status) {
-            filtered = filtered.filter(d => d.Status === status);
-        }
-
-        renderTable(filtered);
-    }
-
-    // ============================================================
-    // RENDER TABLE
-    // ============================================================
-    function renderTable(data) {
-        const tableContent = document.getElementById('tableContent');
-
-        if (!data || data.length === 0) {
-            tableContent.innerHTML = `
-                <div class="empty-state">
-                    <i class="fa-solid fa-inbox"></i>
-                    <p>Tidak ada data yang ditemukan</p>
-                </div>
-            `;
-            return;
-        }
-
-        let html = `
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width:50px;">No</th>
-                        <th style="min-width:200px;">Pesan</th>
-                        <th style="min-width:120px;">Kategori</th>
-                        <th style="min-width:150px;">Saran Perbaikan</th>
-                        <th style="min-width:100px;">Status</th>
-                        <th style="min-width:150px;">Waktu</th>
-                        <th style="min-width:170px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
-        data.forEach((row) => {
-            const isUnread = row.Status !== 'Sudah Dibaca';
-            const statusLabel = isUnread ? 'Belum Dibaca' : 'Sudah Dibaca';
-            const statusClass = isUnread ? 'status-unread' : 'status-read';
-            const timestamp = row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-';
-
-            html += `
-                <tr>
-                    <td><span class="row-number">${row.no || '-'}</span></td>
-                    <td>${truncateText(row.pesan || '', 50)}</td>
-                    <td>${row.kategori || '-'}</td>
-                    <td>${truncateText(row.perbaikan || '-', 40)}</td>
-                    <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
-                    <td>${timestamp}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn-view" onclick="viewDetail(${row.no})">
-                                <i class="fa-solid fa-eye"></i> Detail
-                            </button>
-                            ${isUnread ? `<button class="btn-read" onclick="markAsRead(${row.no})">
-                                <i class="fa-solid fa-check"></i> Tandai
-                            </button>` : ''}
-                            <button class="btn-delete" onclick="deleteRow(${row.no})">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-
-        html += '</tbody></table>';
-        tableContent.innerHTML = html;
-    }
-
-    function truncateText(text, maxLength) {
-        if (!text) return '-';
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-    }
-
-    function getRowData(no) {
-        return allData.find(d => d.no === no) || null;
-    }
-
-    // ============================================================
-    // VIEW DETAIL
-    // ============================================================
-    function viewDetail(no) {
-        const row = getRowData(no);
-        if (!row) {
-            showToast('Data tidak ditemukan', 'error');
-            return;
-        }
-
-        const modal = document.getElementById('detailModal');
-        const content = document.getElementById('detailContent');
-
-        let html = `
-            <div class="detail-item">
-                <label>Pesan / Saran</label>
-                <div class="value">${row.pesan || '-'}</div>
-            </div>
-            <div class="detail-item">
-                <label>Kategori</label>
-                <div class="value">${row.kategori || '-'}</div>
-            </div>
-            <div class="detail-item">
-                <label>Saran Perbaikan</label>
-                <div class="value">${row.perbaikan || '-'}</div>
-            </div>
-            <div class="detail-item">
-                <label>Status</label>
-                <div class="value">${row.Status || 'Belum Dibaca'}</div>
-            </div>
-            <div class="detail-item">
-                <label>Waktu Dikirim</label>
-                <div class="value">${row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-'}</div>
-            </div>
-        `;
-
-        content.innerHTML = html;
-        modal.classList.add('active');
-    }
-
-    function closeDetail() {
-        document.getElementById('detailModal').classList.remove('active');
-    }
-
-    // ============================================================
-    // ACTIONS (MARK AS READ & DELETE)
-    // ============================================================
-    function markAsRead(no) {
-        if (!confirm('Tandai masukan ini sebagai sudah dibaca?')) return;
-
-        fetch(`${SCRIPT_URL}?action=updateStatus&rowNo=${no}&status=Sudah Dibaca`)
-            .then(response => response.json())
-            .then(result => {
-                if (result.result === 'success') {
-                    showToast('Berhasil ditandai sudah dibaca', 'success');
-                    refreshData();
-                } else {
-                    showToast('Gagal update status: ' + (result.error || 'Unknown error'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Terjadi kesalahan: ' + error.message, 'error');
-            });
-    }
-
-    function deleteRow(no) {
-        if (!confirm('Yakin ingin menghapus masukan ini? Aksi tidak dapat dibatalkan!')) return;
-
-        fetch(`${SCRIPT_URL}?action=deleteRow&rowNo=${no}`)
-            .then(response => response.json())
-            .then(result => {
-                if (result.result === 'success') {
-                    showToast('Data berhasil dihapus', 'success');
-                    refreshData();
-                } else {
-                    showToast('Gagal menghapus data: ' + (result.error || 'Unknown error'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Terjadi kesalahan: ' + error.message, 'error');
-            });
-    }
-
-    // ============================================================
-    // EXPORT CSV
-    // ============================================================
-    function exportData() {
-        if (!allData || allData.length === 0) {
-            showToast('Tidak ada data untuk diexport', 'error');
-            return;
-        }
-
-        const headers = ['No', 'Timestamp', 'Pesan', 'Kategori', 'Perbaikan', 'Status'];
-        let csv = headers.join(',') + '\n';
-
-        allData.forEach((row) => {
-            const values = [
-                row.no || '',
-                row.Timestamp || '',
-                `"${(row.pesan || '').replace(/"/g, '""')}"`,
-                `"${(row.kategori || '').replace(/"/g, '""')}"`,
-                `"${(row.perbaikan || '').replace(/"/g, '""')}"`,
-                row.Status || 'Belum Dibaca'
-            ];
-            csv += values.join(',') + '\n';
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `feedback_export_${new Date().toISOString().slice(0,10)}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-
-        showToast('Data berhasil diexport', 'success');
-    }
-
-    // ============================================================
-    // TOAST NOTIFICATION
-    // ============================================================
-    function showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.className = `toast ${type}`;
-        
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 100);
-
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
-    }
-
-    // ============================================================
-    // NAVIGATION CALLBACKS & WINDOW EVENT LISTENER
-    // ============================================================
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('open');
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        checkSession();
-    });
-
-    // Event listener global untuk menutup dropdown atau sidebar jika klik di luar elemen
-    document.addEventListener('click', function(e) {
-        // 1. Deteksi penutupan custom dropdown
-        if (!e.target.closest('.custom-dropdown')) {
-            closeAllDropdowns();
-        }
-
-        // 2. Deteksi penutupan mobile sidebar
-        const sidebar = document.getElementById('sidebar');
-        const hamburger = document.getElementById('hamburgerBtn');
-        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
-                sidebar.classList.remove('open');
-            }
-        }
-    });
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !isLoggedIn) {
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                loginForm.dispatchEvent(new Event('submit'));
-            }
-        }
-    });
-</script>
+<!-- Script Utama -->
+<script src="/admin/script.js"></script>
 
 </body>
 </html>
