@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Kritik & Saran</title>
     
-    <!-- Font Awesome - Gunakan versi terbaru dengan CDN yang stabil -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/regular.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <!-- CSS Utama -->
     <link rel="stylesheet" href="/admin/style.css">
@@ -26,13 +25,13 @@
 <div class="login-page" id="loginPage">
     <div class="login-container">
         <div class="login-icon">
-            <i class="fa-solid fa-lock"></i>
+            <i class="fas fa-lock"></i>
         </div>
         <h2>Admin Access</h2>
         <p class="subtitle">Masukkan password untuk mengakses dashboard</p>
 
         <div class="error-msg" id="loginError">
-            <i class="fa-solid fa-circle-exclamation"></i> Password salah! Silakan coba lagi.
+            <i class="fas fa-circle-exclamation"></i> <span id="errorText">Password salah! Silakan coba lagi.</span>
         </div>
 
         <form id="loginForm">
@@ -41,12 +40,12 @@
                 <input type="password" id="passwordInput" placeholder="Masukkan password admin..." required autofocus>
             </div>
             <button type="submit" class="btn-login" id="loginBtn">
-                Masuk <i class="fa-solid fa-arrow-right"></i>
+                <span id="loginBtnText">Masuk</span> <i class="fas fa-arrow-right"></i>
             </button>
         </form>
 
         <p class="login-footer">
-            <i class="fa-solid fa-shield"></i> Hanya untuk akses terbatas
+            <i class="fas fa-shield"></i> Hanya untuk akses terbatas
         </p>
     </div>
 </div>
@@ -56,36 +55,36 @@
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <i class="fa-solid fa-envelope"></i>
+            <i class="fas fa-envelope"></i>
             <h2>Feedback Admin</h2>
             <small>Manajemen Kritik & Saran</small>
         </div>
 
         <div class="nav-item active" onclick="loadDashboard()">
-            <i class="fa-solid fa-chart-pie"></i> Dashboard
+            <i class="fas fa-chart-pie"></i> Dashboard
         </div>
         <div class="nav-item" onclick="loadData()">
-            <i class="fa-solid fa-list"></i> Semua Masukan
+            <i class="fas fa-list"></i> Semua Masukan
             <span class="badge" id="totalBadge">0</span>
         </div>
         <div class="nav-item" onclick="loadUnread()">
-            <i class="fa-solid fa-envelope"></i> Belum Dibaca
+            <i class="fas fa-envelope"></i> Belum Dibaca
             <span class="badge unread" id="unreadBadge">0</span>
         </div>
 
         <div class="nav-divider"></div>
 
         <div class="nav-item" onclick="refreshData()">
-            <i class="fa-solid fa-rotate"></i> Refresh
+            <i class="fas fa-rotate"></i> Refresh
         </div>
         <div class="nav-item" onclick="window.open('https://kritik-saran-kamal.pages.dev', '_blank')">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Form
+            <i class="fas fa-arrow-up-right-from-square"></i> Buka Form
         </div>
 
         <div class="nav-divider"></div>
 
         <div class="nav-item logout" onclick="handleLogout()">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
+            <i class="fas fa-right-from-bracket"></i> Logout
         </div>
     </div>
 
@@ -95,35 +94,35 @@
         <div class="page-header">
             <div class="page-header-left">
                 <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
-                    <i class="fa-solid fa-bars"></i>
+                    <i class="fas fa-bars"></i>
                 </button>
                 <h1 id="pageTitle">Dashboard</h1>
             </div>
             <div class="header-actions">
-                <button onclick="refreshData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
-                <button onclick="exportData()"><i class="fa-solid fa-download"></i> Export</button>
+                <button onclick="refreshData()"><i class="fas fa-rotate"></i> Refresh</button>
+                <button onclick="exportData()"><i class="fas fa-download"></i> Export</button>
             </div>
         </div>
 
         <!-- Stats -->
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card primary">
-                <span class="stat-icon"><i class="fa-solid fa-inbox"></i></span>
+                <span class="stat-icon"><i class="fas fa-inbox"></i></span>
                 <div class="stat-number" id="statTotal">0</div>
                 <div class="stat-label">Total Masukan</div>
             </div>
             <div class="stat-card danger">
-                <span class="stat-icon"><i class="fa-solid fa-envelope"></i></span>
+                <span class="stat-icon"><i class="fas fa-envelope"></i></span>
                 <div class="stat-number" id="statUnread">0</div>
                 <div class="stat-label">Belum Dibaca</div>
             </div>
             <div class="stat-card success">
-                <span class="stat-icon"><i class="fa-solid fa-circle-check"></i></span>
+                <span class="stat-icon"><i class="fas fa-circle-check"></i></span>
                 <div class="stat-number" id="statRead">0</div>
                 <div class="stat-label">Sudah Dibaca</div>
             </div>
             <div class="stat-card warning">
-                <span class="stat-icon"><i class="fa-solid fa-tag"></i></span>
+                <span class="stat-icon"><i class="fas fa-tag"></i></span>
                 <div class="stat-number" id="statCategories">0</div>
                 <div class="stat-label">Kategori Terisi</div>
             </div>
@@ -150,7 +149,7 @@
         <div class="table-container">
             <div id="tableContent">
                 <div class="loading">
-                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <i class="fas fa-spinner fa-spin"></i>
                     <span>Memuat data...</span>
                 </div>
             </div>
@@ -161,7 +160,7 @@
 <!-- ==================== MODAL DETAIL ==================== -->
 <div class="modal-overlay" id="detailModal">
     <div class="modal-box">
-        <h3><i class="fa-solid fa-file-lines"></i> Detail Masukan</h3>
+        <h3><i class="fas fa-file-lines"></i> Detail Masukan</h3>
         <div id="detailContent"></div>
         <button class="modal-close" onclick="closeDetail()">Tutup</button>
     </div>
