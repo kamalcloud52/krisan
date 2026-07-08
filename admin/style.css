@@ -17,6 +17,18 @@ body {
     color: #1a1a2e;
 }
 
+/* Font Awesome fallback - pastikan ikon tetap muncul */
+.fa-solid,
+.fa-regular,
+.fa-brands {
+    font-family: 'Font Awesome 6 Free' !important;
+    font-weight: 900 !important;
+}
+
+.fa-regular {
+    font-weight: 400 !important;
+}
+
 /* ---------- LOGIN PAGE ---------- */
 .login-page {
     display: flex;
