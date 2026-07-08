@@ -7,26 +7,49 @@
 // KONFIGURASI
 // ============================================================
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDQj02zqB64f3Svjj4hux92B-qc-coBRISQqztZncNPaFSCXm5iVN7vtdEBAj2Q_Y/exec';
+const SESSION_KEY = 'admin_session';
+const TOKEN_KEY = 'admin_token';
+const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 jam
+
 let allData = [];
 let currentFilter = 'all';
 let isLoggedIn = false;
 let authToken = '';
+let sessionCheckInterval = null;
 
 // ============================================================
-// AUTHENTICATION - BACKEND
+// AUTHENTICATION - SESSION MANAGEMENT
 // ============================================================
 
 /**
  * Cek session di localStorage dan verifikasi ke backend
  */
 function checkSession() {
-    authToken = localStorage.getItem('admin_token') || '';
+    const sessionData = localStorage.getItem(SESSION_KEY);
     
-    if (authToken) {
-        verifyToken(authToken);
-    } else {
-        showLogin();
+    if (sessionData) {
+        try {
+            const session = JSON.parse(sessionData);
+            const now = Date.now();
+            
+            // Cek apakah session masih valid (belum expired)
+            if (session.expires && session.expires > now) {
+                authToken = session.token;
+                isLoggedIn = true;
+                
+                // Verifikasi token ke backend (untuk memastikan token masih valid)
+                verifyToken(authToken);
+                return;
+            } else {
+                // Session expired
+                clearSession();
+            }
+        } catch (e) {
+            clearSession();
+        }
     }
+    
+    showLogin();
 }
 
 /**
@@ -37,19 +60,90 @@ function verifyToken(token) {
         .then(response => response.json())
         .then(result => {
             if (result.result === 'success') {
-                isLoggedIn = true;
+                // Token valid, perpanjang session
+                extendSession(token);
                 showApp();
+                startSessionMonitor();
             } else {
-                localStorage.removeItem('admin_token');
-                authToken = '';
+                // Token tidak valid
+                clearSession();
                 showLogin();
             }
         })
         .catch(() => {
-            localStorage.removeItem('admin_token');
-            authToken = '';
-            showLogin();
+            // Jika gagal verifikasi, tetap coba gunakan token yang ada
+            // Tapi kita tetap coba load data
+            extendSession(token);
+            showApp();
+            startSessionMonitor();
         });
+}
+
+/**
+ * Buat session baru
+ */
+function createSession(token) {
+    const session = {
+        token: token,
+        created: Date.now(),
+        expires: Date.now() + SESSION_DURATION
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    authToken = token;
+    isLoggedIn = true;
+}
+
+/**
+ * Perpanjang session
+ */
+function extendSession(token) {
+    const session = {
+        token: token,
+        created: Date.now(),
+        expires: Date.now() + SESSION_DURATION
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    authToken = token;
+    isLoggedIn = true;
+}
+
+/**
+ * Hapus session
+ */
+function clearSession() {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    authToken = '';
+    isLoggedIn = false;
+    if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+        sessionCheckInterval = null;
+    }
+}
+
+/**
+ * Start session monitor (cek setiap 5 menit)
+ */
+function startSessionMonitor() {
+    if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+    }
+    
+    sessionCheckInterval = setInterval(() => {
+        const sessionData = localStorage.getItem(SESSION_KEY);
+        if (sessionData) {
+            try {
+                const session = JSON.parse(sessionData);
+                if (session.expires && session.expires < Date.now()) {
+                    // Session expired, logout otomatis
+                    handleLogout();
+                    showToast('Session habis, silakan login ulang', 'error');
+                }
+            } catch (e) {
+                handleLogout();
+            }
+        }
+    }, 5 * 60 * 1000); // Cek setiap 5 menit
 }
 
 /**
@@ -70,17 +164,17 @@ function handleLogin(event) {
     }
     
     loginBtn.disabled = true;
-    loginBtn.innerHTML = 'Memeriksa <i class="fa-regular fa-spinner fa-spin"></i>';
+    loginBtn.innerHTML = 'Memeriksa <i class="fa-solid fa-spinner fa-spin"></i>';
     errorMsg.classList.remove('show');
     
     fetch(`${SCRIPT_URL}?action=login&password=${encodeURIComponent(password)}`)
         .then(response => response.json())
         .then(result => {
             if (result.result === 'success') {
-                authToken = result.token;
-                localStorage.setItem('admin_token', authToken);
-                isLoggedIn = true;
+                // Buat session dengan token dari backend
+                createSession(result.token);
                 showApp();
+                startSessionMonitor();
                 showToast('Selamat datang, Admin!', 'success');
             } else {
                 errorMsg.textContent = 'Password salah! Silakan coba lagi.';
@@ -95,7 +189,7 @@ function handleLogin(event) {
         })
         .finally(() => {
             loginBtn.disabled = false;
-            loginBtn.innerHTML = 'Masuk <i class="fa-regular fa-arrow-right"></i>';
+            loginBtn.innerHTML = 'Masuk <i class="fa-solid fa-arrow-right"></i>';
         });
 }
 
@@ -104,12 +198,7 @@ function handleLogin(event) {
  */
 function handleLogout() {
     if (confirm('Yakin ingin logout?')) {
-        localStorage.removeItem('admin_token');
-        authToken = '';
-        isLoggedIn = false;
-        
-        fetch(`${SCRIPT_URL}?action=logout`).catch(() => {});
-        
+        clearSession();
         showLogin();
         showToast('Anda telah logout', 'success');
     }
@@ -191,13 +280,15 @@ function setActiveNav(page) {
  */
 function fetchData() {
     const tableContent = document.getElementById('tableContent');
-    tableContent.innerHTML = `<div class="loading"><i class="fa-regular fa-spinner fa-spin"></i><span>Memuat data...</span></div>`;
+    tableContent.innerHTML = `<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i><span>Memuat data...</span></div>`;
 
     fetch(`${SCRIPT_URL}?action=getData&token=${encodeURIComponent(authToken)}`)
         .then(response => response.json())
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
-                handleLogout();
+                clearSession();
+                showLogin();
+                showToast('Session tidak valid, silakan login ulang', 'error');
                 return;
             }
             
@@ -207,12 +298,12 @@ function fetchData() {
                 applyFilters();
                 loadStats();
             } else {
-                tableContent.innerHTML = `<div class="empty-state"><i class="fa-regular fa-triangle-exclamation"></i><p>Gagal memuat data: ${result.error || 'Unknown error'}</p></div>`;
+                tableContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Gagal memuat data: ${result.error || 'Unknown error'}</p></div>`;
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            tableContent.innerHTML = `<div class="empty-state"><i class="fa-regular fa-wifi-slash"></i><p>Gagal terhubung ke server: ${error.message}</p></div>`;
+            tableContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-wifi-slash"></i><p>Gagal terhubung ke server: ${error.message}</p></div>`;
         });
 }
 
@@ -221,7 +312,8 @@ function fetchData() {
  */
 function refreshData() {
     if (!authToken) {
-        handleLogout();
+        clearSession();
+        showLogin();
         return;
     }
     showToast('Merefresh data...', 'success');
@@ -240,7 +332,8 @@ function loadStats() {
         .then(response => response.json())
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
-                handleLogout();
+                clearSession();
+                showLogin();
                 return;
             }
             
@@ -327,7 +420,7 @@ function renderTable(data) {
     if (!data || data.length === 0) {
         tableContent.innerHTML = `
             <div class="empty-state">
-                <i class="fa-regular fa-inbox"></i>
+                <i class="fa-solid fa-inbox"></i>
                 <p>Tidak ada data yang ditemukan</p>
             </div>
         `;
@@ -367,13 +460,13 @@ function renderTable(data) {
                 <td>
                     <div class="action-buttons">
                         <button class="btn-view" onclick="viewDetail(${row.no})">
-                            <i class="fa-regular fa-eye"></i> Detail
+                            <i class="fa-solid fa-eye"></i> Detail
                         </button>
                         ${isUnread ? `<button class="btn-read" onclick="markAsRead(${row.no})">
-                            <i class="fa-regular fa-check"></i> Tandai
+                            <i class="fa-solid fa-check"></i> Tandai
                         </button>` : ''}
                         <button class="btn-delete" onclick="deleteRow(${row.no})">
-                            <i class="fa-regular fa-trash"></i>
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </td>
@@ -469,7 +562,8 @@ function markAsRead(no) {
         .then(response => response.json())
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
-                handleLogout();
+                clearSession();
+                showLogin();
                 return;
             }
             
@@ -500,7 +594,8 @@ function deleteRow(no) {
         .then(response => response.json())
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
-                handleLogout();
+                clearSession();
+                showLogin();
                 return;
             }
             
