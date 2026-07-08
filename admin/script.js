@@ -8,21 +8,18 @@
 // ============================================================
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDQj02zqB64f3Svjj4hux92B-qc-coBRISQqztZncNPaFSCXm5iVN7vtdEBAj2Q_Y/exec';
 const SESSION_KEY = 'admin_session';
-const TOKEN_KEY = 'admin_token';
-const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 jam
 
 let allData = [];
 let currentFilter = 'all';
 let isLoggedIn = false;
 let authToken = '';
-let sessionCheckInterval = null;
 
 // ============================================================
-// AUTHENTICATION - SESSION MANAGEMENT
+// AUTHENTICATION
 // ============================================================
 
 /**
- * Cek session di localStorage dan verifikasi ke backend
+ * Cek session di localStorage
  */
 function checkSession() {
     const sessionData = localStorage.getItem(SESSION_KEY);
@@ -36,114 +33,18 @@ function checkSession() {
             if (session.expires && session.expires > now) {
                 authToken = session.token;
                 isLoggedIn = true;
-                
-                // Verifikasi token ke backend (untuk memastikan token masih valid)
-                verifyToken(authToken);
+                showApp();
                 return;
             } else {
                 // Session expired
-                clearSession();
+                localStorage.removeItem(SESSION_KEY);
             }
         } catch (e) {
-            clearSession();
+            localStorage.removeItem(SESSION_KEY);
         }
     }
     
     showLogin();
-}
-
-/**
- * Verifikasi token ke backend
- */
-function verifyToken(token) {
-    fetch(`${SCRIPT_URL}?action=checkSession&token=${encodeURIComponent(token)}`)
-        .then(response => response.json())
-        .then(result => {
-            if (result.result === 'success') {
-                // Token valid, perpanjang session
-                extendSession(token);
-                showApp();
-                startSessionMonitor();
-            } else {
-                // Token tidak valid
-                clearSession();
-                showLogin();
-            }
-        })
-        .catch(() => {
-            // Jika gagal verifikasi, tetap coba gunakan token yang ada
-            // Tapi kita tetap coba load data
-            extendSession(token);
-            showApp();
-            startSessionMonitor();
-        });
-}
-
-/**
- * Buat session baru
- */
-function createSession(token) {
-    const session = {
-        token: token,
-        created: Date.now(),
-        expires: Date.now() + SESSION_DURATION
-    };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    authToken = token;
-    isLoggedIn = true;
-}
-
-/**
- * Perpanjang session
- */
-function extendSession(token) {
-    const session = {
-        token: token,
-        created: Date.now(),
-        expires: Date.now() + SESSION_DURATION
-    };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    authToken = token;
-    isLoggedIn = true;
-}
-
-/**
- * Hapus session
- */
-function clearSession() {
-    localStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(TOKEN_KEY);
-    authToken = '';
-    isLoggedIn = false;
-    if (sessionCheckInterval) {
-        clearInterval(sessionCheckInterval);
-        sessionCheckInterval = null;
-    }
-}
-
-/**
- * Start session monitor (cek setiap 5 menit)
- */
-function startSessionMonitor() {
-    if (sessionCheckInterval) {
-        clearInterval(sessionCheckInterval);
-    }
-    
-    sessionCheckInterval = setInterval(() => {
-        const sessionData = localStorage.getItem(SESSION_KEY);
-        if (sessionData) {
-            try {
-                const session = JSON.parse(sessionData);
-                if (session.expires && session.expires < Date.now()) {
-                    // Session expired, logout otomatis
-                    handleLogout();
-                    showToast('Session habis, silakan login ulang', 'error');
-                }
-            } catch (e) {
-                handleLogout();
-            }
-        }
-    }, 5 * 60 * 1000); // Cek setiap 5 menit
 }
 
 /**
@@ -154,42 +55,61 @@ function handleLogin(event) {
     
     const passwordInput = document.getElementById('passwordInput');
     const loginBtn = document.getElementById('loginBtn');
+    const loginBtnText = document.getElementById('loginBtnText');
     const errorMsg = document.getElementById('loginError');
+    const errorText = document.getElementById('errorText');
     const password = passwordInput.value.trim();
     
+    // Reset error
+    errorMsg.classList.remove('show');
+    
     if (!password) {
-        errorMsg.textContent = 'Password tidak boleh kosong!';
+        errorText.textContent = 'Password tidak boleh kosong!';
         errorMsg.classList.add('show');
+        passwordInput.focus();
         return;
     }
     
+    // Disable button
     loginBtn.disabled = true;
-    loginBtn.innerHTML = 'Memeriksa <i class="fa-solid fa-spinner fa-spin"></i>';
-    errorMsg.classList.remove('show');
+    loginBtnText.textContent = 'Memeriksa';
+    loginBtn.querySelector('i').className = 'fas fa-spinner fa-spin';
     
+    // Kirim ke backend
     fetch(`${SCRIPT_URL}?action=login&password=${encodeURIComponent(password)}`)
         .then(response => response.json())
         .then(result => {
+            console.log('Login response:', result);
+            
             if (result.result === 'success') {
-                // Buat session dengan token dari backend
-                createSession(result.token);
+                // Buat session
+                const session = {
+                    token: result.token,
+                    expires: Date.now() + (24 * 60 * 60 * 1000) // 24 jam
+                };
+                localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+                authToken = result.token;
+                isLoggedIn = true;
+                
                 showApp();
-                startSessionMonitor();
                 showToast('Selamat datang, Admin!', 'success');
             } else {
-                errorMsg.textContent = 'Password salah! Silakan coba lagi.';
+                errorText.textContent = result.message || 'Password salah! Silakan coba lagi.';
                 errorMsg.classList.add('show');
                 passwordInput.value = '';
                 passwordInput.focus();
             }
         })
-        .catch(() => {
-            errorMsg.textContent = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
+        .catch(error => {
+            console.error('Login error:', error);
+            errorText.textContent = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
             errorMsg.classList.add('show');
         })
         .finally(() => {
+            // Enable button
             loginBtn.disabled = false;
-            loginBtn.innerHTML = 'Masuk <i class="fa-solid fa-arrow-right"></i>';
+            loginBtnText.textContent = 'Masuk';
+            loginBtn.querySelector('i').className = 'fas fa-arrow-right';
         });
 }
 
@@ -198,7 +118,9 @@ function handleLogin(event) {
  */
 function handleLogout() {
     if (confirm('Yakin ingin logout?')) {
-        clearSession();
+        localStorage.removeItem(SESSION_KEY);
+        authToken = '';
+        isLoggedIn = false;
         showLogin();
         showToast('Anda telah logout', 'success');
     }
@@ -211,6 +133,13 @@ function showLogin() {
     document.getElementById('loginPage').style.display = 'flex';
     document.getElementById('appContent').classList.remove('visible');
     document.getElementById('appContent').style.display = 'none';
+    
+    // Reset form login
+    const passwordInput = document.getElementById('passwordInput');
+    if (passwordInput) {
+        passwordInput.value = '';
+        setTimeout(() => passwordInput.focus(), 100);
+    }
 }
 
 /**
@@ -227,9 +156,6 @@ function showApp() {
 // LOAD FUNCTIONS
 // ============================================================
 
-/**
- * Load dashboard (stats + data)
- */
 function loadDashboard() {
     document.getElementById('pageTitle').textContent = 'Dashboard';
     loadStats();
@@ -237,9 +163,6 @@ function loadDashboard() {
     setActiveNav('dashboard');
 }
 
-/**
- * Load semua data
- */
 function loadData() {
     currentFilter = 'all';
     document.getElementById('pageTitle').textContent = 'Semua Masukan';
@@ -247,9 +170,6 @@ function loadData() {
     setActiveNav('data');
 }
 
-/**
- * Load data yang belum dibaca
- */
 function loadUnread() {
     currentFilter = 'unread';
     document.getElementById('pageTitle').textContent = 'Belum Dibaca';
@@ -257,17 +177,15 @@ function loadUnread() {
     setActiveNav('unread');
 }
 
-/**
- * Set active navigation item
- */
 function setActiveNav(page) {
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    const navItems = document.querySelectorAll('.nav-item');
     if (page === 'dashboard') {
-        document.querySelector('.nav-item:nth-child(1)').classList.add('active');
+        if (navItems[0]) navItems[0].classList.add('active');
     } else if (page === 'data') {
-        document.querySelector('.nav-item:nth-child(2)').classList.add('active');
+        if (navItems[1]) navItems[1].classList.add('active');
     } else if (page === 'unread') {
-        document.querySelector('.nav-item:nth-child(3)').classList.add('active');
+        if (navItems[2]) navItems[2].classList.add('active');
     }
 }
 
@@ -275,18 +193,17 @@ function setActiveNav(page) {
 // FETCH DATA
 // ============================================================
 
-/**
- * Fetch data dari backend
- */
 function fetchData() {
     const tableContent = document.getElementById('tableContent');
-    tableContent.innerHTML = `<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i><span>Memuat data...</span></div>`;
+    tableContent.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i><span>Memuat data...</span></div>`;
 
     fetch(`${SCRIPT_URL}?action=getData&token=${encodeURIComponent(authToken)}`)
         .then(response => response.json())
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
-                clearSession();
+                localStorage.removeItem(SESSION_KEY);
+                authToken = '';
+                isLoggedIn = false;
                 showLogin();
                 showToast('Session tidak valid, silakan login ulang', 'error');
                 return;
@@ -298,21 +215,18 @@ function fetchData() {
                 applyFilters();
                 loadStats();
             } else {
-                tableContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Gagal memuat data: ${result.error || 'Unknown error'}</p></div>`;
+                tableContent.innerHTML = `<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>Gagal memuat data: ${result.error || 'Unknown error'}</p></div>`;
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            tableContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-wifi-slash"></i><p>Gagal terhubung ke server: ${error.message}</p></div>`;
+            tableContent.innerHTML = `<div class="empty-state"><i class="fas fa-wifi-slash"></i><p>Gagal terhubung ke server: ${error.message}</p></div>`;
         });
 }
 
-/**
- * Refresh data
- */
 function refreshData() {
     if (!authToken) {
-        clearSession();
+        localStorage.removeItem(SESSION_KEY);
         showLogin();
         return;
     }
@@ -324,15 +238,14 @@ function refreshData() {
 // LOAD STATS
 // ============================================================
 
-/**
- * Load statistik dari backend
- */
 function loadStats() {
     fetch(`${SCRIPT_URL}?action=getStats&token=${encodeURIComponent(authToken)}`)
         .then(response => response.json())
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
-                clearSession();
+                localStorage.removeItem(SESSION_KEY);
+                authToken = '';
+                isLoggedIn = false;
                 showLogin();
                 return;
             }
@@ -351,9 +264,6 @@ function loadStats() {
         .catch(console.error);
 }
 
-/**
- * Update badge di sidebar
- */
 function updateBadges() {
     const total = allData.length;
     const unread = allData.filter(d => d.Status !== 'Sudah Dibaca').length;
@@ -365,9 +275,6 @@ function updateBadges() {
 // APPLY FILTERS
 // ============================================================
 
-/**
- * Apply filter ke data
- */
 function applyFilters() {
     const search = document.getElementById('searchInput').value.toLowerCase();
     const category = document.getElementById('categoryFilter').value;
@@ -411,16 +318,13 @@ function applyFilters() {
 // RENDER TABLE
 // ============================================================
 
-/**
- * Render tabel dengan data
- */
 function renderTable(data) {
     const tableContent = document.getElementById('tableContent');
 
     if (!data || data.length === 0) {
         tableContent.innerHTML = `
             <div class="empty-state">
-                <i class="fa-solid fa-inbox"></i>
+                <i class="fas fa-inbox"></i>
                 <p>Tidak ada data yang ditemukan</p>
             </div>
         `;
@@ -460,13 +364,13 @@ function renderTable(data) {
                 <td>
                     <div class="action-buttons">
                         <button class="btn-view" onclick="viewDetail(${row.no})">
-                            <i class="fa-solid fa-eye"></i> Detail
+                            <i class="fas fa-eye"></i> Detail
                         </button>
                         ${isUnread ? `<button class="btn-read" onclick="markAsRead(${row.no})">
-                            <i class="fa-solid fa-check"></i> Tandai
+                            <i class="fas fa-check"></i> Tandai
                         </button>` : ''}
                         <button class="btn-delete" onclick="deleteRow(${row.no})">
-                            <i class="fa-solid fa-trash"></i>
+                            <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 </td>
@@ -482,17 +386,11 @@ function renderTable(data) {
 // UTILITY FUNCTIONS
 // ============================================================
 
-/**
- * Truncate text dengan max length
- */
 function truncateText(text, maxLength) {
     if (!text) return '-';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 }
 
-/**
- * Cari data berdasarkan nomor
- */
 function getRowData(no) {
     return allData.find(d => d.no === no) || null;
 }
@@ -501,9 +399,6 @@ function getRowData(no) {
 // VIEW DETAIL
 // ============================================================
 
-/**
- * Tampilkan detail data di modal
- */
 function viewDetail(no) {
     const row = getRowData(no);
     if (!row) {
@@ -541,9 +436,6 @@ function viewDetail(no) {
     modal.classList.add('active');
 }
 
-/**
- * Tutup modal detail
- */
 function closeDetail() {
     document.getElementById('detailModal').classList.remove('active');
 }
@@ -552,9 +444,6 @@ function closeDetail() {
 // MARK AS READ
 // ============================================================
 
-/**
- * Tandai feedback sebagai sudah dibaca
- */
 function markAsRead(no) {
     if (!confirm('Tandai masukan ini sebagai sudah dibaca?')) return;
 
@@ -562,7 +451,9 @@ function markAsRead(no) {
         .then(response => response.json())
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
-                clearSession();
+                localStorage.removeItem(SESSION_KEY);
+                authToken = '';
+                isLoggedIn = false;
                 showLogin();
                 return;
             }
@@ -584,9 +475,6 @@ function markAsRead(no) {
 // DELETE ROW
 // ============================================================
 
-/**
- * Hapus feedback
- */
 function deleteRow(no) {
     if (!confirm('Yakin ingin menghapus masukan ini? Aksi tidak dapat dibatalkan!')) return;
 
@@ -594,7 +482,9 @@ function deleteRow(no) {
         .then(response => response.json())
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
-                clearSession();
+                localStorage.removeItem(SESSION_KEY);
+                authToken = '';
+                isLoggedIn = false;
                 showLogin();
                 return;
             }
@@ -616,9 +506,6 @@ function deleteRow(no) {
 // EXPORT DATA
 // ============================================================
 
-/**
- * Export data ke CSV
- */
 function exportData() {
     if (!allData || allData.length === 0) {
         showToast('Tidak ada data untuk diexport', 'error');
@@ -653,12 +540,9 @@ function exportData() {
 }
 
 // ============================================================
-// TOAST NOTIFICATION
+// TOAST
 // ============================================================
 
-/**
- * Tampilkan toast notification
- */
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     toast.textContent = message;
@@ -674,29 +558,34 @@ function showToast(message, type = 'success') {
 }
 
 // ============================================================
-// SIDEBAR TOGGLE (MOBILE)
+// SIDEBAR TOGGLE
 // ============================================================
 
-/**
- * Toggle sidebar di mobile
- */
 function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('open');
 }
 
 // ============================================================
-// INIT
+// EVENT LISTENERS
 // ============================================================
 
+// Login form submit
 document.addEventListener('DOMContentLoaded', function() {
+    // Cek session
     checkSession();
+    
+    // Setup login form
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
 });
 
 // Tutup sidebar saat klik di luar (mobile)
 document.addEventListener('click', function(e) {
     const sidebar = document.getElementById('sidebar');
     const hamburger = document.getElementById('hamburgerBtn');
-    if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+    if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
         if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
             sidebar.classList.remove('open');
         }
