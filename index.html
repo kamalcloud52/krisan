@@ -369,6 +369,24 @@
                 font-size: 2rem;
             }
         }
+
+        :root { --ink:#172033; --muted:#65718a; --line:#e3e8f1; --brand:#315ce8; --canvas:#f4f6fb; }
+        body { color:var(--ink); background:radial-gradient(ellipse at top left,#eaf0ff 0,transparent 42%),var(--canvas); }
+        .container { border:1px solid rgba(215,223,238,.85); box-shadow:0 18px 60px rgba(30,48,88,.09); }
+        .header-icon { width:58px; height:58px; display:grid; place-items:center; margin:0 auto 16px; border-radius:18px; background:#eef3ff; }
+        label { color:#28344b; }
+        textarea, input[type="text"] { border-color:var(--line); background:#fbfcff; }
+        textarea:focus, input[type="text"]:focus, .dynamic-input-container input:focus { border-color:var(--brand); }
+        .custom-select-trigger { width:100%; text-align:left; font-family:inherit; }
+        button, input { font:inherit; }
+        :focus-visible { outline:3px solid #9bb8ff; outline-offset:2px; }
+        .category-item { min-height:46px; }
+        .modal-box { max-height:min(85vh,720px); overflow:auto; }
+        .btn-submit, .btn-close-modal { min-height:46px; }
+        .form-feedback { min-height:0; margin-top:10px; color:#b42318; font-size:13px; line-height:1.5; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+        }
     </style>
 </head>
 <body>
@@ -376,9 +394,9 @@
 <div class="container">
     <!-- HEADER -->
     <div class="header">
-        <div class="header-icon"><i class="fa-regular fa-pen-to-square"></i></div>
+        <div class="header-icon" aria-hidden="true"><i class="fa-regular fa-pen-to-square"></i></div>
         <h1>Kirim Masukan</h1>
-        <p class="subtitle">Sampaikan kritik &amp; saran secara anonim. Tanpa login, tanpa ribet.</p>
+        <p class="subtitle">Sampaikan kritik dan saran tanpa mengisi nama atau login.</p>
     </div>
 
     <!-- FORM -->
@@ -389,11 +407,11 @@
         </div>
 
         <div class="form-group">
-            <label>Kategori</label>
-            <div class="custom-select-trigger" id="selectKategoriBtn">
+            <label id="kategoriLabel">Kategori</label>
+            <button type="button" class="custom-select-trigger" id="selectKategoriBtn" aria-labelledby="kategoriLabel selectedKategoriText" aria-haspopup="dialog" aria-expanded="false" aria-controls="categoryModal">
                 <span id="selectedKategoriText">Sikap / Kepribadian</span>
                 <i class="fa-solid fa-chevron-down chevron" id="chevronIcon"></i>
-            </div>
+            </button>
             <input type="hidden" id="kategori" name="kategori" value="Sikap / Kepribadian">
 
             <div class="dynamic-input-container" id="lainnyaContainer">
@@ -410,31 +428,32 @@
             Kirim
             <i class="fa-regular fa-paper-plane btn-icon"></i>
         </button>
+        <p class="form-feedback" id="formFeedback" role="status" aria-live="polite"></p>
     </form>
 
     <div class="footer">
-        <i class="fa-regular fa-circle-check"></i> Anonim &amp; Aman &bull; Terima kasih sudah berbagi
+        <i class="fa-regular fa-circle-check" aria-hidden="true"></i> Tidak perlu nama &bull; Hindari menulis data pribadi
     </div>
 </div>
 
 <!-- ===== MODAL KATEGORI ===== -->
-<div class="modal-overlay" id="categoryModal">
-    <div class="modal-box">
-        <div class="modal-title">Pilih Kategori Masukan</div>
-        <ul class="category-list">
-            <li class="category-item" data-value="Sikap / Kepribadian"><i class="fa-solid fa-user-gear"></i> Sikap / Kepribadian</li>
-            <li class="category-item" data-value="Cara komunikasi"><i class="fa-solid fa-comments"></i> Cara komunikasi</li>
-            <li class="category-item" data-value="Penampilan"><i class="fa-solid fa-shirt"></i> Penampilan</li>
-            <li class="category-item" data-value="Lainnya"><i class="fa-solid fa-ellipsis"></i> Yang lain... (Isi sendiri)</li>
+<div class="modal-overlay" id="categoryModal" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="categoryTitle" tabindex="-1">
+        <div class="modal-title" id="categoryTitle">Pilih Kategori Masukan</div>
+        <ul class="category-list" role="listbox" aria-label="Kategori masukan">
+            <li class="category-item" role="option" tabindex="0" data-value="Sikap / Kepribadian"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Sikap / Kepribadian</li>
+            <li class="category-item" role="option" tabindex="0" data-value="Cara komunikasi"><i class="fa-solid fa-comments" aria-hidden="true"></i> Cara komunikasi</li>
+            <li class="category-item" role="option" tabindex="0" data-value="Penampilan"><i class="fa-solid fa-shirt" aria-hidden="true"></i> Penampilan</li>
+            <li class="category-item" role="option" tabindex="0" data-value="Lainnya"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i> Yang lain... (Isi sendiri)</li>
         </ul>
     </div>
 </div>
 
 <!-- ===== MODAL SUKSES ===== -->
-<div class="modal-overlay" id="successModal">
-    <div class="modal-box">
+<div class="modal-overlay" id="successModal" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="successTitle" tabindex="-1">
         <div class="success-icon"><i class="fa-regular fa-circle-check"></i></div>
-        <div class="success-title">Terkirim!</div>
+        <div class="success-title" id="successTitle">Terkirim!</div>
         <div class="success-text">Terima kasih! Masukanmu sudah tersimpan secara anonim.</div>
         <button class="btn-close-modal" id="closeSuccessBtn">Tutup</button>
     </div>
@@ -451,6 +470,7 @@
     // ============================================================
     const form = document.getElementById('feedbackForm');
     const submitBtn = document.getElementById('submitBtn');
+    const formFeedback = document.getElementById('formFeedback');
 
     const selectKategoriBtn = document.getElementById('selectKategoriBtn');
     const chevronIcon = document.getElementById('chevronIcon');
@@ -469,7 +489,10 @@
     // ============================================================
     selectKategoriBtn.addEventListener('click', () => {
         categoryModal.classList.add('active');
+        categoryModal.setAttribute('aria-hidden', 'false');
+        selectKategoriBtn.setAttribute('aria-expanded', 'true');
         chevronIcon.classList.add('open');
+        categoryModal.querySelector('[role="dialog"]').focus();
     });
 
     // ============================================================
@@ -478,6 +501,7 @@
     categoryItems.forEach(item => {
         item.addEventListener('click', () => {
             const value = item.getAttribute('data-value');
+            categoryItems.forEach(option => option.setAttribute('aria-selected', String(option === item)));
 
             if (value === 'Lainnya') {
                 selectedKategoriText.textContent = 'Lainnya...';
@@ -494,8 +518,28 @@
             }
 
             categoryModal.classList.remove('active');
+            categoryModal.setAttribute('aria-hidden', 'true');
+            selectKategoriBtn.setAttribute('aria-expanded', 'false');
             chevronIcon.classList.remove('open');
+            if (value !== 'Lainnya') selectKategoriBtn.focus();
         });
+    });
+
+    categoryModal.addEventListener('keydown', (event) => {
+        const items = Array.from(categoryItems);
+        const index = items.indexOf(document.activeElement);
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            const direction = event.key === 'ArrowDown' ? 1 : -1;
+            items[(index + direction + items.length) % items.length].focus();
+        } else if (event.key === 'Enter' || event.key === ' ') {
+            if (items.includes(document.activeElement)) { event.preventDefault(); document.activeElement.click(); }
+        } else if (event.key === 'Tab') {
+            const current = items.indexOf(document.activeElement);
+            const next = event.shiftKey ? (current <= 0 ? items.length - 1 : current - 1) : (current < 0 || current === items.length - 1 ? 0 : current + 1);
+            event.preventDefault();
+            items[next].focus();
+        }
     });
 
     // ============================================================
@@ -504,7 +548,10 @@
     categoryModal.addEventListener('click', (e) => {
         if (e.target === categoryModal) {
             categoryModal.classList.remove('active');
+            categoryModal.setAttribute('aria-hidden', 'true');
+            selectKategoriBtn.setAttribute('aria-expanded', 'false');
             chevronIcon.classList.remove('open');
+            selectKategoriBtn.focus();
         }
     });
 
@@ -513,6 +560,7 @@
     // ============================================================
     form.addEventListener('submit', (e) => {
         e.preventDefault();
+        formFeedback.textContent = '';
         submitBtn.disabled = true;
         submitBtn.innerHTML = 'Mengirim <i class="fa-solid fa-spinner fa-spin btn-icon"></i>';
 
@@ -525,8 +573,12 @@
         }
 
         fetch(scriptURL, { method: 'POST', body: formData })
-            .then(() => {
+            .then(response => response.json())
+            .then(result => {
+                if (result.result !== 'success') throw new Error(result.error || result.message || 'Masukan gagal disimpan.');
                 successModal.classList.add('active');
+                successModal.setAttribute('aria-hidden', 'false');
+                successModal.querySelector('[role="dialog"]').focus();
 
                 // Reset form
                 submitBtn.disabled = false;
@@ -541,7 +593,7 @@
             })
             .catch((error) => {
                 console.error('Error:', error);
-                alert('Terjadi kendala saat mengirim. Silakan coba lagi.');
+                formFeedback.textContent = error.message || 'Terjadi kendala saat mengirim. Silakan coba lagi.';
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Kirim <i class="fa-regular fa-paper-plane btn-icon"></i>';
             });
@@ -552,11 +604,30 @@
     // ============================================================
     closeSuccessBtn.addEventListener('click', () => {
         successModal.classList.remove('active');
+        successModal.setAttribute('aria-hidden', 'true');
+        submitBtn.focus();
     });
 
     successModal.addEventListener('click', (e) => {
         if (e.target === successModal) {
             successModal.classList.remove('active');
+            successModal.setAttribute('aria-hidden', 'true');
+            submitBtn.focus();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            categoryModal.classList.remove('active');
+            categoryModal.setAttribute('aria-hidden', 'true');
+            selectKategoriBtn.setAttribute('aria-expanded', 'false');
+            chevronIcon.classList.remove('open');
+            successModal.classList.remove('active');
+            successModal.setAttribute('aria-hidden', 'true');
+            if (!categoryModal.classList.contains('active')) selectKategoriBtn.focus();
+        } else if (event.key === 'Tab' && categoryModal.classList.contains('active')) {
+            event.preventDefault();
+            categoryItems[0].focus();
         }
     });
 </script>
