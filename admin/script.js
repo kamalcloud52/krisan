@@ -9,6 +9,15 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDQj02zqB64f3Svjj4hux92B-qc-coBRISQqztZncNPaFSCXm5iVN7vtdEBAj2Q_Y/exec';
 const SESSION_KEY = 'admin_session';
 
+function apiRequest(action, params = {}) {
+    const body = new URLSearchParams({ action, ...params });
+    return fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }, body }).then(response => response.json());
+}
+
+function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+}
+
 let allData = [];
 let currentFilter = 'all';
 let isLoggedIn = false;
@@ -58,7 +67,7 @@ function handleLogin(event) {
     const loginBtnText = document.getElementById('loginBtnText');
     const errorMsg = document.getElementById('loginError');
     const errorText = document.getElementById('errorText');
-    const password = passwordInput.value.trim();
+    const password = passwordInput.value;
     
     // Reset error
     errorMsg.classList.remove('show');
@@ -76,8 +85,7 @@ function handleLogin(event) {
     loginBtn.querySelector('i').className = 'fas fa-spinner fa-spin';
     
     // Kirim ke backend
-    fetch(`${SCRIPT_URL}?action=login&password=${encodeURIComponent(password)}`)
-        .then(response => response.json())
+    apiRequest('login', { password })
         .then(result => {
             console.log('Login response:', result);
             
@@ -85,7 +93,7 @@ function handleLogin(event) {
                 // Buat session
                 const session = {
                     token: result.token,
-                    expires: Date.now() + (24 * 60 * 60 * 1000) // 24 jam
+                    expires: result.expires || Date.now() + (6 * 60 * 60 * 1000)
                 };
                 localStorage.setItem(SESSION_KEY, JSON.stringify(session));
                 authToken = result.token;
@@ -118,11 +126,13 @@ function handleLogin(event) {
  */
 function handleLogout() {
     if (confirm('Yakin ingin logout?')) {
-        localStorage.removeItem(SESSION_KEY);
-        authToken = '';
-        isLoggedIn = false;
-        showLogin();
-        showToast('Anda telah logout', 'success');
+        apiRequest('logout', { token: authToken }).catch(error => console.error('Logout error:', error)).finally(() => {
+            localStorage.removeItem(SESSION_KEY);
+            authToken = '';
+            isLoggedIn = false;
+            showLogin();
+            showToast('Anda telah logout', 'success');
+        });
     }
 }
 
@@ -158,8 +168,8 @@ function showApp() {
 
 function loadDashboard() {
     document.getElementById('pageTitle').textContent = 'Dashboard';
-    loadStats();
-    loadData();
+    currentFilter = 'all';
+    fetchData();
     setActiveNav('dashboard');
 }
 
@@ -178,14 +188,14 @@ function loadUnread() {
 }
 
 function setActiveNav(page) {
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => { el.classList.remove('active'); el.removeAttribute('aria-current'); });
     const navItems = document.querySelectorAll('.nav-item');
     if (page === 'dashboard') {
-        if (navItems[0]) navItems[0].classList.add('active');
+        if (navItems[0]) { navItems[0].classList.add('active'); navItems[0].setAttribute('aria-current', 'page'); }
     } else if (page === 'data') {
-        if (navItems[1]) navItems[1].classList.add('active');
+        if (navItems[1]) { navItems[1].classList.add('active'); navItems[1].setAttribute('aria-current', 'page'); }
     } else if (page === 'unread') {
-        if (navItems[2]) navItems[2].classList.add('active');
+        if (navItems[2]) { navItems[2].classList.add('active'); navItems[2].setAttribute('aria-current', 'page'); }
     }
 }
 
@@ -197,8 +207,7 @@ function fetchData() {
     const tableContent = document.getElementById('tableContent');
     tableContent.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i><span>Memuat data...</span></div>`;
 
-    fetch(`${SCRIPT_URL}?action=getData&token=${encodeURIComponent(authToken)}`)
-        .then(response => response.json())
+    apiRequest('getData', { token: authToken })
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
                 localStorage.removeItem(SESSION_KEY);
@@ -215,12 +224,12 @@ function fetchData() {
                 applyFilters();
                 loadStats();
             } else {
-                tableContent.innerHTML = `<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>Gagal memuat data: ${result.error || 'Unknown error'}</p></div>`;
+                tableContent.innerHTML = `<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><p>Gagal memuat data: ${escapeHtml(result.error || result.message || 'Unknown error')}</p></div>`;
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            tableContent.innerHTML = `<div class="empty-state"><i class="fas fa-wifi-slash"></i><p>Gagal terhubung ke server: ${error.message}</p></div>`;
+            tableContent.innerHTML = `<div class="empty-state"><i class="fas fa-wifi-slash"></i><p>Gagal terhubung ke server: ${escapeHtml(error.message)}</p></div>`;
         });
 }
 
@@ -239,8 +248,7 @@ function refreshData() {
 // ============================================================
 
 function loadStats() {
-    fetch(`${SCRIPT_URL}?action=getStats&token=${encodeURIComponent(authToken)}`)
-        .then(response => response.json())
+    apiRequest('getStats', { token: authToken })
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
                 localStorage.removeItem(SESSION_KEY);
@@ -301,14 +309,14 @@ function applyFilters() {
         filtered = filtered.filter(d => {
             const kat = d.kategori || '';
             if (category === 'Lainnya') {
-                return kat.startsWith('Lainnya:');
+                return kat === 'Lainnya' || kat.startsWith('Lainnya:');
             }
             return kat === category;
         });
     }
 
     if (status) {
-        filtered = filtered.filter(d => d.Status === status);
+        filtered = filtered.filter(d => (d.Status === 'Sudah Dibaca' ? 'Sudah Dibaca' : 'Belum Dibaca') === status);
     }
 
     renderTable(filtered);
@@ -356,9 +364,9 @@ function renderTable(data) {
         html += `
             <tr>
                 <td><span class="row-number">${row.no || '-'}</span></td>
-                <td>${truncateText(row.pesan || '', 50)}</td>
-                <td>${row.kategori || '-'}</td>
-                <td>${truncateText(row.perbaikan || '-', 40)}</td>
+                <td>${escapeHtml(truncateText(row.pesan || '', 50))}</td>
+                <td>${escapeHtml(row.kategori || '-')}</td>
+                <td>${escapeHtml(truncateText(row.perbaikan || '-', 40))}</td>
                 <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
                 <td>${timestamp}</td>
                 <td>
@@ -412,32 +420,36 @@ function viewDetail(no) {
     let html = `
         <div class="detail-item">
             <label>Pesan / Saran</label>
-            <div class="value">${row.pesan || '-'}</div>
+            <div class="value">${escapeHtml(row.pesan || '-')}</div>
         </div>
         <div class="detail-item">
             <label>Kategori</label>
-            <div class="value">${row.kategori || '-'}</div>
+            <div class="value">${escapeHtml(row.kategori || '-')}</div>
         </div>
         <div class="detail-item">
             <label>Saran Perbaikan</label>
-            <div class="value">${row.perbaikan || '-'}</div>
+            <div class="value">${escapeHtml(row.perbaikan || '-')}</div>
         </div>
         <div class="detail-item">
             <label>Status</label>
-            <div class="value">${row.Status || 'Belum Dibaca'}</div>
+            <div class="value">${escapeHtml(row.Status || 'Belum Dibaca')}</div>
         </div>
         <div class="detail-item">
             <label>Waktu Dikirim</label>
-            <div class="value">${row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-'}</div>
+            <div class="value">${escapeHtml(row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-')}</div>
         </div>
     `;
 
     content.innerHTML = html;
     modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    modal.querySelector('[role="dialog"]').focus();
 }
 
 function closeDetail() {
-    document.getElementById('detailModal').classList.remove('active');
+    const modal = document.getElementById('detailModal');
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
 }
 
 // ============================================================
@@ -447,8 +459,7 @@ function closeDetail() {
 function markAsRead(no) {
     if (!confirm('Tandai masukan ini sebagai sudah dibaca?')) return;
 
-    fetch(`${SCRIPT_URL}?action=updateStatus&rowNo=${no}&status=Sudah Dibaca&token=${encodeURIComponent(authToken)}`)
-        .then(response => response.json())
+    apiRequest('updateStatus', { rowNo: String(no), status: 'Sudah Dibaca', token: authToken })
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
                 localStorage.removeItem(SESSION_KEY);
@@ -478,8 +489,7 @@ function markAsRead(no) {
 function deleteRow(no) {
     if (!confirm('Yakin ingin menghapus masukan ini? Aksi tidak dapat dibatalkan!')) return;
 
-    fetch(`${SCRIPT_URL}?action=deleteRow&rowNo=${no}&token=${encodeURIComponent(authToken)}`)
-        .then(response => response.json())
+    apiRequest('deleteRow', { rowNo: String(no), token: authToken })
         .then(result => {
             if (result.code === 'UNAUTHORIZED') {
                 localStorage.removeItem(SESSION_KEY);
@@ -518,16 +528,16 @@ function exportData() {
     allData.forEach((row) => {
         const values = [
             row.no || '',
-            row.Timestamp || '',
-            `"${(row.pesan || '').replace(/"/g, '""')}"`,
-            `"${(row.kategori || '').replace(/"/g, '""')}"`,
-            `"${(row.perbaikan || '').replace(/"/g, '""')}"`,
-            row.Status || 'Belum Dibaca'
+            csvCell(row.Timestamp || ''),
+            csvCell(row.pesan || ''),
+            csvCell(row.kategori || ''),
+            csvCell(row.perbaikan || ''),
+            csvCell(row.Status || 'Belum Dibaca')
         ];
         csv += values.join(',') + '\n';
     });
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['\ufeff', csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `feedback_export_${new Date().toISOString().slice(0,10)}.csv`;
@@ -537,6 +547,11 @@ function exportData() {
     URL.revokeObjectURL(link.href);
 
     showToast('Data berhasil diexport', 'success');
+}
+
+function csvCell(value) {
+    const safe = String(value).replace(/^[\s\u0000-\u001f]*([=+\-@])/u, "'$1");
+    return `"${safe.replace(/"/g, '""')}"`;
 }
 
 // ============================================================
@@ -562,7 +577,8 @@ function showToast(message, type = 'success') {
 // ============================================================
 
 function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
+    const isOpen = document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('hamburgerBtn').setAttribute('aria-expanded', String(isOpen));
 }
 
 // ============================================================
@@ -594,10 +610,9 @@ document.addEventListener('click', function(e) {
 
 // Shortcut Enter untuk login
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !isLoggedIn) {
-        const loginForm = document.getElementById('loginForm');
-        if (loginForm) {
-            loginForm.dispatchEvent(new Event('submit'));
-        }
+    if (e.key === 'Escape') {
+        closeDetail();
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('hamburgerBtn').setAttribute('aria-expanded', 'false');
     }
 });
