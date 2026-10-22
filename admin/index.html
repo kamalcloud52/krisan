@@ -11,13 +11,7 @@
     <!-- CSS Utama -->
     <link rel="stylesheet" href="/admin/style.css">
     
-    <!-- PWA Meta Tags -->
-    <link rel="manifest" href="/admin/manifest.json">
-    <meta name="theme-color" content="#2563eb">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Feedback Admin">
-    <link rel="apple-touch-icon" href="/admin/icons/icon-192.png">
+    <meta name="theme-color" content="#315ce8">
 </head>
 <body>
 
@@ -30,14 +24,14 @@
         <h2>Admin Access</h2>
         <p class="subtitle">Masukkan password untuk mengakses dashboard</p>
 
-        <div class="error-msg" id="loginError">
+        <div class="error-msg" id="loginError" role="alert" aria-live="assertive">
             <i class="fas fa-circle-exclamation"></i> <span id="errorText">Password salah! Silakan coba lagi.</span>
         </div>
 
         <form id="loginForm">
             <div class="form-group">
                 <label for="passwordInput">Password</label>
-                <input type="password" id="passwordInput" placeholder="Masukkan password admin..." required autofocus>
+            <input type="password" id="passwordInput" name="password" autocomplete="current-password" placeholder="Masukkan password admin..." required autofocus>
             </div>
             <button type="submit" class="btn-login" id="loginBtn">
                 <span id="loginBtnText">Masuk</span> <i class="fas fa-arrow-right"></i>
@@ -60,32 +54,32 @@
             <small>Manajemen Kritik & Saran</small>
         </div>
 
-        <div class="nav-item active" onclick="loadDashboard()">
+        <button type="button" class="nav-item active" onclick="loadDashboard()" aria-current="page">
             <i class="fas fa-chart-pie"></i> Dashboard
-        </div>
-        <div class="nav-item" onclick="loadData()">
+        </button>
+        <button type="button" class="nav-item" onclick="loadData()">
             <i class="fas fa-list"></i> Semua Masukan
             <span class="badge" id="totalBadge">0</span>
-        </div>
-        <div class="nav-item" onclick="loadUnread()">
+        </button>
+        <button type="button" class="nav-item" onclick="loadUnread()">
             <i class="fas fa-envelope"></i> Belum Dibaca
             <span class="badge unread" id="unreadBadge">0</span>
-        </div>
+        </button>
 
         <div class="nav-divider"></div>
 
-        <div class="nav-item" onclick="refreshData()">
+        <button type="button" class="nav-item" onclick="refreshData()">
             <i class="fas fa-rotate"></i> Refresh
-        </div>
-        <div class="nav-item" onclick="window.open('https://kritik-saran-kamal.pages.dev', '_blank')">
+        </button>
+        <a class="nav-item" href="https://kritik-saran-kamal.pages.dev" target="_blank" rel="noopener noreferrer">
             <i class="fas fa-arrow-up-right-from-square"></i> Buka Form
-        </div>
+        </a>
 
         <div class="nav-divider"></div>
 
-        <div class="nav-item logout" onclick="handleLogout()">
+        <button type="button" class="nav-item logout" onclick="handleLogout()">
             <i class="fas fa-right-from-bracket"></i> Logout
-        </div>
+        </button>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -93,7 +87,7 @@
         <!-- Header -->
         <div class="page-header">
             <div class="page-header-left">
-                <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+                <button type="button" class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Buka navigasi" aria-expanded="false" aria-controls="sidebar">
                     <i class="fas fa-bars"></i>
                 </button>
                 <h1 id="pageTitle">Dashboard</h1>
@@ -130,15 +124,15 @@
 
         <!-- Filter -->
         <div class="filter-bar">
-            <input type="text" id="searchInput" placeholder="Cari pesan..." oninput="applyFilters()">
-            <select id="categoryFilter" onchange="applyFilters()">
+            <input type="search" id="searchInput" aria-label="Cari pesan, kategori, atau saran" placeholder="Cari pesan..." oninput="applyFilters()">
+            <select id="categoryFilter" aria-label="Filter kategori" onchange="applyFilters()">
                 <option value="">Semua Kategori</option>
                 <option value="Sikap / Kepribadian">Sikap / Kepribadian</option>
                 <option value="Cara komunikasi">Cara komunikasi</option>
                 <option value="Penampilan">Penampilan</option>
                 <option value="Lainnya">Lainnya</option>
             </select>
-            <select id="statusFilter" onchange="applyFilters()">
+            <select id="statusFilter" aria-label="Filter status baca" onchange="applyFilters()">
                 <option value="">Semua Status</option>
                 <option value="Belum Dibaca">Belum Dibaca</option>
                 <option value="Sudah Dibaca">Sudah Dibaca</option>
@@ -158,33 +152,18 @@
 </div>
 
 <!-- ==================== MODAL DETAIL ==================== -->
-<div class="modal-overlay" id="detailModal">
-    <div class="modal-box">
-        <h3><i class="fas fa-file-lines"></i> Detail Masukan</h3>
+<div class="modal-overlay" id="detailModal" aria-hidden="true">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="detailTitle" tabindex="-1">
+        <h3 id="detailTitle"><i class="fas fa-file-lines" aria-hidden="true"></i> Detail Masukan</h3>
         <div id="detailContent"></div>
         <button class="modal-close" onclick="closeDetail()">Tutup</button>
     </div>
 </div>
 
 <!-- ==================== TOAST NOTIFICATION ==================== -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- ==================== JAVASCRIPT ==================== -->
-<!-- Service Worker Registration -->
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/admin/sw.js')
-                .then(registration => {
-                    console.log('Service Worker registered successfully:', registration);
-                })
-                .catch(error => {
-                    console.log('Service Worker registration failed:', error);
-                });
-        });
-    }
-</script>
-
 <!-- Script Utama -->
 <script src="/admin/script.js"></script>
 
