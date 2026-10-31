@@ -6,7 +6,7 @@
 // ============================================================
 // KONFIGURASI
 // ============================================================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDQj02zqB64f3Svjj4hux92B-qc-coBRISQqztZncNPaFSCXm5iVN7vtdEBAj2Q_Y/exec';
+const SCRIPT_URL = window.FEEDBACK_API_URL;
 const SESSION_KEY = 'admin_session';
 
 function apiRequest(action, params = {}) {
@@ -19,7 +19,9 @@ function escapeHtml(value) {
 }
 
 let allData = [];
+let filteredData = [];
 let currentFilter = 'all';
+let activeFollowUpNo = null;
 let isLoggedIn = false;
 let authToken = '';
 
@@ -285,8 +287,12 @@ function updateBadges() {
 
 function applyFilters() {
     const search = document.getElementById('searchInput').value.toLowerCase();
+    const searchField = document.getElementById('searchField').value;
     const category = document.getElementById('categoryFilter').value;
     const status = document.getElementById('statusFilter').value;
+    const followUpStatus = document.getElementById('followUpFilter').value;
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
 
     let filtered = allData;
 
@@ -294,16 +300,8 @@ function applyFilters() {
         filtered = filtered.filter(d => d.Status !== 'Sudah Dibaca');
     }
 
-    if (search) {
-        filtered = filtered.filter(d => {
-            const pesan = (d.pesan || '').toLowerCase();
-            const kategori = (d.kategori || '').toLowerCase();
-            const perbaikan = (d.perbaikan || '').toLowerCase();
-            return pesan.includes(search) || 
-                   kategori.includes(search) || 
-                   perbaikan.includes(search);
-        });
-    }
+    if (search) filtered = filtered.filter(row => matchesAdvancedSearch(row, search, searchField));
+    filtered = filtered.filter(row => withinDateRange(row, dateFrom, dateTo));
 
     if (category) {
         filtered = filtered.filter(d => {
@@ -318,8 +316,23 @@ function applyFilters() {
     if (status) {
         filtered = filtered.filter(d => (d.Status === 'Sudah Dibaca' ? 'Sudah Dibaca' : 'Belum Dibaca') === status);
     }
+    if (followUpStatus) filtered = filtered.filter(row => (row['Status Tindak Lanjut'] || 'Baru') === followUpStatus);
 
+    filteredData = filtered;
+    document.getElementById('resultsCount').textContent = `${filtered.length} dari ${allData.length} masukan`;
+    renderTrendSummary(filtered);
     renderTable(filtered);
+}
+
+function clearFilters() {
+    ['searchInput','searchField','categoryFilter','statusFilter','followUpFilter','dateFrom','dateTo'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input.tagName === 'SELECT') input.selectedIndex = 0;
+        else input.value = '';
+    });
+    currentFilter = 'all';
+    setActiveNav('data');
+    applyFilters();
 }
 
 // ============================================================
@@ -348,8 +361,9 @@ function renderTable(data) {
                     <th style="min-width:120px;">Kategori</th>
                     <th style="min-width:150px;">Saran Perbaikan</th>
                     <th style="min-width:100px;">Status</th>
+                    <th style="min-width:150px;">Tindak lanjut</th>
                     <th style="min-width:150px;">Waktu</th>
-                    <th style="min-width:170px;">Aksi</th>
+                    <th style="min-width:210px;">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -360,6 +374,8 @@ function renderTable(data) {
         const statusLabel = isUnread ? 'Belum Dibaca' : 'Sudah Dibaca';
         const statusClass = isUnread ? 'status-unread' : 'status-read';
         const timestamp = row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-';
+        const followUp = row['Status Tindak Lanjut'] || 'Baru';
+        const replyStatus = row['Status Balasan'] === 'Terkirim' ? 'Balasan terkirim' : (row.Balasan ? 'Draft balasan' : 'Belum dibalas');
 
         html += `
             <tr>
@@ -368,11 +384,15 @@ function renderTable(data) {
                 <td>${escapeHtml(row.kategori || '-')}</td>
                 <td>${escapeHtml(truncateText(row.perbaikan || '-', 40))}</td>
                 <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                <td><span class="followup-badge">${escapeHtml(followUp)}</span><br><small>${escapeHtml(replyStatus)}</small></td>
                 <td>${timestamp}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn-view" onclick="viewDetail(${row.no})">
                             <i class="fas fa-eye"></i> Detail
+                        </button>
+                        <button class="btn-followup" onclick="openFollowUp(${row.no})" aria-label="Balas atau tindak lanjuti masukan ${row.no}">
+                            <i class="fas fa-reply"></i> Tindak lanjut
                         </button>
                         ${isUnread ? `<button class="btn-read" onclick="markAsRead(${row.no})">
                             <i class="fas fa-check"></i> Tandai
@@ -438,12 +458,78 @@ function viewDetail(no) {
             <label>Waktu Dikirim</label>
             <div class="value">${escapeHtml(row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-')}</div>
         </div>
+        <div class="detail-item"><label>Status tindak lanjut</label><div class="value">${escapeHtml(row['Status Tindak Lanjut'] || 'Baru')}</div></div>
+        <div class="detail-item"><label>Balasan</label><div class="value">${escapeHtml(row.Balasan || 'Belum ada balasan')}</div></div>
+        <div class="detail-item"><label>Status balasan</label><div class="value">${escapeHtml(row['Status Balasan'] || 'Belum ada balasan')}</div></div>
+        <div class="detail-item"><label>Catatan internal</label><div class="value">${escapeHtml(row['Catatan Tindak Lanjut'] || '-')}</div></div>
     `;
 
     content.innerHTML = html;
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
     modal.querySelector('[role="dialog"]').focus();
+}
+
+function openFollowUp(no) {
+    const row = getRowData(no);
+    if (!row) return showToast('Masukan tidak ditemukan', 'error');
+    activeFollowUpNo = no;
+    document.getElementById('followUpStatus').value = row['Status Tindak Lanjut'] || 'Baru';
+    document.getElementById('replyDraft').value = row.Balasan || '';
+    document.getElementById('followUpNotes').value = row['Catatan Tindak Lanjut'] || '';
+    document.getElementById('followUpTicketInfo').textContent = 'Balasan yang dipublikasikan bisa dicek pengirim lewat halaman “Cek balasan” menggunakan kode tiket anonim.';
+    const replyStatus = row['Status Balasan'] === 'Terkirim' ? 'Balasan sudah dipublikasikan dan dapat dilihat dengan kode tiket.' : 'Balasan belum dipublikasikan.';
+    document.getElementById('replyActions').textContent = replyStatus;
+    const modal = document.getElementById('followUpModal');
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    modal.querySelector('[role="dialog"]').focus();
+}
+
+function closeFollowUp() {
+    const modal = document.getElementById('followUpModal');
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    activeFollowUpNo = null;
+}
+
+function saveFollowUp(publishReply = false) {
+    if (!activeFollowUpNo) return;
+    if (publishReply && !confirm('Publikasikan balasan ini? Pengirim dapat membacanya dengan kode tiket.')) return;
+    const button = document.getElementById('saveFollowUpBtn');
+    const publishButton = document.getElementById('publishReplyBtn');
+    const reply = document.getElementById('replyDraft').value.trim();
+    if (publishReply && !reply) return showToast('Tulis balasan sebelum memublikasikannya.', 'error');
+    const existingRow = getRowData(activeFollowUpNo);
+    const replyStatus = publishReply ? 'Terkirim' : (existingRow && existingRow['Status Balasan'] === 'Terkirim' && reply === (existingRow.Balasan || '') ? 'Terkirim' : (reply ? 'Draft' : 'Belum ada balasan'));
+    button.disabled = true;
+    publishButton.disabled = true;
+    button.textContent = publishReply ? 'Memublikasikan…' : 'Menyimpan…';
+    apiRequest('updateFollowUp', {
+        rowNo: String(activeFollowUpNo),
+        followUpStatus: document.getElementById('followUpStatus').value,
+        reply,
+        notes: document.getElementById('followUpNotes').value.trim(),
+        replyStatus,
+        token: authToken
+    }).then(result => {
+        if (result.code === 'UNAUTHORIZED') {
+            localStorage.removeItem(SESSION_KEY);
+            authToken = '';
+            isLoggedIn = false;
+            showLogin();
+            throw new Error('Sesi admin berakhir. Silakan login kembali.');
+        }
+        if (result.result !== 'success') throw new Error(result.error || result.message || 'Perubahan gagal disimpan.');
+        showToast(publishReply ? 'Balasan dipublikasikan.' : 'Tindak lanjut tersimpan.', 'success');
+        closeFollowUp();
+        fetchData();
+    }).catch(error => showToast(error.message, 'error')).finally(() => {
+        button.disabled = false;
+        publishButton.disabled = false;
+        button.textContent = 'Simpan draft';
+        publishButton.textContent = 'Publikasikan balasan';
+    });
 }
 
 function closeDetail() {
@@ -517,22 +603,26 @@ function deleteRow(no) {
 // ============================================================
 
 function exportData() {
-    if (!allData || allData.length === 0) {
+    if (!filteredData || filteredData.length === 0) {
         showToast('Tidak ada data untuk diexport', 'error');
         return;
     }
 
-    const headers = ['No', 'Timestamp', 'Pesan', 'Kategori', 'Perbaikan', 'Status'];
+    const headers = ['No', 'Timestamp', 'Pesan', 'Kategori', 'Perbaikan', 'Status Baca', 'Status Tindak Lanjut', 'Status Balasan', 'Balasan', 'Catatan Tindak Lanjut'];
     let csv = headers.join(',') + '\n';
 
-    allData.forEach((row) => {
+    filteredData.forEach((row) => {
         const values = [
             row.no || '',
             csvCell(row.Timestamp || ''),
             csvCell(row.pesan || ''),
             csvCell(row.kategori || ''),
             csvCell(row.perbaikan || ''),
-            csvCell(row.Status || 'Belum Dibaca')
+            csvCell(row.Status || 'Belum Dibaca'),
+            csvCell(row['Status Tindak Lanjut'] || 'Baru'),
+            csvCell(row['Status Balasan'] || 'Belum ada balasan'),
+            csvCell(row.Balasan || ''),
+            csvCell(row['Catatan Tindak Lanjut'] || '')
         ];
         csv += values.join(',') + '\n';
     });
@@ -546,7 +636,7 @@ function exportData() {
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
 
-    showToast('Data berhasil diexport', 'success');
+    showToast(`${filteredData.length} masukan hasil filter diexport`, 'success');
 }
 
 function csvCell(value) {
@@ -612,6 +702,7 @@ document.addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeDetail();
+        closeFollowUp();
         document.getElementById('sidebar').classList.remove('open');
         document.getElementById('hamburgerBtn').setAttribute('aria-expanded', 'false');
     }
