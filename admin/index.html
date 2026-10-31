@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <!-- CSS Utama -->
-    <link rel="stylesheet" href="/admin/style.css">
+    <link rel="stylesheet" href="style.css">
     
     <meta name="theme-color" content="#315ce8">
 </head>
@@ -71,7 +71,7 @@
         <button type="button" class="nav-item" onclick="refreshData()">
             <i class="fas fa-rotate"></i> Refresh
         </button>
-        <a class="nav-item" href="https://kritik-saran-kamal.pages.dev" target="_blank" rel="noopener noreferrer">
+        <a class="nav-item" href="../index.html" target="_blank" rel="noopener noreferrer">
             <i class="fas fa-arrow-up-right-from-square"></i> Buka Form
         </a>
 
@@ -122,9 +122,25 @@
             </div>
         </div>
 
-        <!-- Filter -->
+        <section class="trend-panel" aria-labelledby="trendTitle">
+            <div class="trend-heading">
+                <div><h2 id="trendTitle">Ringkasan tren</h2><p id="trendCaption">Perubahan jumlah masukan dari waktu ke waktu</p></div>
+                <strong id="trendTotal">0 masukan</strong>
+            </div>
+            <div id="trendChart" class="trend-chart" role="img" aria-label="Grafik tren masukan"></div>
+        </section>
+
+        <!-- Pencarian dan filter -->
+        <section class="search-panel" aria-label="Pencarian dan filter masukan">
         <div class="filter-bar">
-            <input type="search" id="searchInput" aria-label="Cari pesan, kategori, atau saran" placeholder="Cari pesan..." oninput="applyFilters()">
+            <input type="search" id="searchInput" aria-label="Cari kata atau frasa" placeholder="Cari kata atau frasa…" oninput="applyFilters()">
+            <select id="searchField" aria-label="Cari di bidang" onchange="applyFilters()">
+                <option value="all">Semua isi</option>
+                <option value="pesan">Pesan</option>
+                <option value="kategori">Kategori</option>
+                <option value="perbaikan">Saran perbaikan</option>
+                <option value="followup">Balasan dan catatan tindak lanjut</option>
+            </select>
             <select id="categoryFilter" aria-label="Filter kategori" onchange="applyFilters()">
                 <option value="">Semua Kategori</option>
                 <option value="Sikap / Kepribadian">Sikap / Kepribadian</option>
@@ -137,7 +153,20 @@
                 <option value="Belum Dibaca">Belum Dibaca</option>
                 <option value="Sudah Dibaca">Sudah Dibaca</option>
             </select>
+            <select id="followUpFilter" aria-label="Filter status tindak lanjut" onchange="applyFilters()">
+                <option value="">Semua tindak lanjut</option>
+                <option value="Baru">Baru</option>
+                <option value="Ditinjau">Ditinjau</option>
+                <option value="Menunggu balasan">Menunggu balasan</option>
+                <option value="Ditindaklanjuti">Ditindaklanjuti</option>
+                <option value="Selesai">Selesai</option>
+            </select>
+            <label class="date-filter">Dari <input type="date" id="dateFrom" aria-label="Tanggal mulai" onchange="applyFilters()"></label>
+            <label class="date-filter">Sampai <input type="date" id="dateTo" aria-label="Tanggal akhir" onchange="applyFilters()"></label>
+            <button type="button" class="btn-clear-filters" onclick="clearFilters()">Reset filter</button>
         </div>
+        <div class="results-meta"><span id="resultsCount" aria-live="polite">0 hasil</span><small>Pisahkan kata dengan spasi; gunakan tanda kutip untuk frasa persis.</small></div>
+        </section>
 
         <!-- Table -->
         <div class="table-container">
@@ -160,12 +189,30 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="followUpModal" aria-hidden="true">
+    <div class="modal-box follow-up-box" role="dialog" aria-modal="true" aria-labelledby="followUpTitle" tabindex="-1">
+        <h3 id="followUpTitle"><i class="fas fa-reply" aria-hidden="true"></i> Balas dan tindak lanjuti</h3>
+        <div id="followUpTicketInfo" class="ticket-info"></div>
+        <div class="form-group"><label for="followUpStatus">Status tindak lanjut</label>
+            <select id="followUpStatus">
+                <option>Baru</option><option>Ditinjau</option><option>Menunggu balasan</option><option>Ditindaklanjuti</option><option>Selesai</option>
+            </select>
+        </div>
+        <div class="form-group"><label for="replyDraft">Balasan untuk pengirim</label><textarea id="replyDraft" rows="4" maxlength="5000" placeholder="Tulis balasan yang akan dilihat pengirim…"></textarea><small>Balasan baru dapat dilihat pengirim setelah dipublikasikan menggunakan kode tiket anonim.</small></div>
+        <div class="form-group"><label for="followUpNotes">Catatan tindak lanjut internal</label><textarea id="followUpNotes" rows="3" maxlength="5000" placeholder="Catatan untuk admin, tidak dikirim ke pengirim"></textarea></div>
+        <div id="replyActions" class="reply-actions"></div>
+        <div class="modal-actions"><button type="button" class="modal-close secondary" onclick="closeFollowUp()">Tutup</button><button type="button" class="btn-save-followup" id="saveFollowUpBtn" onclick="saveFollowUp(false)">Simpan draft</button><button type="button" class="btn-publish-reply" id="publishReplyBtn" onclick="saveFollowUp(true)">Publikasikan balasan</button></div>
+    </div>
+</div>
+
 <!-- ==================== TOAST NOTIFICATION ==================== -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- ==================== JAVASCRIPT ==================== -->
 <!-- Script Utama -->
-<script src="/admin/script.js"></script>
+<script src="../config.js"></script>
+<script src="script.js"></script>
+<script src="insights.js"></script>
 
 </body>
 </html>
