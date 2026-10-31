@@ -384,6 +384,12 @@
         .modal-box { max-height:min(85vh,720px); overflow:auto; }
         .btn-submit, .btn-close-modal { min-height:46px; }
         .form-feedback { min-height:0; margin-top:10px; color:#b42318; font-size:13px; line-height:1.5; }
+        .footer a, .success-code-wrap a { color:var(--brand); font-weight:600; }
+        .success-code-wrap { display:grid; gap:8px; margin:0 0 18px; padding:14px; border:1px solid #dce5ff; border-radius:12px; background:#f5f7ff; text-align:left; }
+        .success-code-wrap[hidden] { display:none; }
+        .success-code-wrap span, .success-code-wrap small { color:var(--muted); font-size:12px; }
+        .success-code-wrap code { color:#172033; font-size:17px; font-weight:700; letter-spacing:1px; overflow-wrap:anywhere; }
+        .btn-copy-ticket { justify-self:start; padding:8px 12px; border:0; border-radius:8px; color:#fff; background:var(--brand); cursor:pointer; }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
         }
@@ -396,7 +402,7 @@
     <div class="header">
         <div class="header-icon" aria-hidden="true"><i class="fa-regular fa-pen-to-square"></i></div>
         <h1>Kirim Masukan</h1>
-        <p class="subtitle">Sampaikan kritik dan saran tanpa mengisi nama atau login.</p>
+        <p class="subtitle">Sampaikan masukan tanpa login. Simpan kode tiket jika ingin mengecek balasan nanti.</p>
     </div>
 
     <!-- FORM -->
@@ -432,7 +438,7 @@
     </form>
 
     <div class="footer">
-        <i class="fa-regular fa-circle-check" aria-hidden="true"></i> Tidak perlu nama &bull; Hindari menulis data pribadi
+        <i class="fa-regular fa-circle-check" aria-hidden="true"></i> Anonim tanpa login &bull; <a href="balasan.html">Cek balasan dengan kode tiket</a>
     </div>
 </div>
 
@@ -454,16 +460,24 @@
     <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="successTitle" tabindex="-1">
         <div class="success-icon"><i class="fa-regular fa-circle-check"></i></div>
         <div class="success-title" id="successTitle">Terkirim!</div>
-        <div class="success-text">Terima kasih! Masukanmu sudah tersimpan secara anonim.</div>
+        <div class="success-text" id="successText">Terima kasih! Masukanmu sudah tersimpan secara anonim.</div>
+        <div class="success-code-wrap" id="successTicketWrap" hidden>
+            <span>Kode tiket rahasia</span>
+            <code id="successTicketCode"></code>
+            <button type="button" class="btn-copy-ticket" id="copyTicketBtn">Salin kode</button>
+            <small>Simpan kode ini. Kode tidak dapat dipulihkan jika hilang.</small>
+            <a href="balasan.html">Buka halaman cek balasan</a>
+        </div>
         <button class="btn-close-modal" id="closeSuccessBtn">Tutup</button>
     </div>
 </div>
 
+<script src="config.js"></script>
 <script>
     // ============================================================
     // KONFIGURASI
     // ============================================================
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzDQj02zqB64f3Svjj4hux92B-qc-coBRISQqztZncNPaFSCXm5iVN7vtdEBAj2Q_Y/exec';
+    const scriptURL = window.FEEDBACK_API_URL;
 
     // ============================================================
     // ELEMEN
@@ -483,6 +497,9 @@
 
     const successModal = document.getElementById('successModal');
     const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+    const successTicketWrap = document.getElementById('successTicketWrap');
+    const successTicketCode = document.getElementById('successTicketCode');
+    const successText = document.getElementById('successText');
 
     // ============================================================
     // BUKA MODAL KATEGORI
@@ -576,6 +593,11 @@
             .then(response => response.json())
             .then(result => {
                 if (result.result !== 'success') throw new Error(result.error || result.message || 'Masukan gagal disimpan.');
+                successTicketCode.textContent = result.ticketCode || '';
+                successTicketWrap.hidden = !result.ticketCode;
+                successText.textContent = result.ticketCode
+                    ? 'Masukan tersimpan. Simpan kode tiket berikut untuk mengecek balasan.'
+                    : 'Masukan tersimpan. Backend belum mengaktifkan kode tiket; perbarui deployment agar balasan anonim bisa dicek.';
                 successModal.classList.add('active');
                 successModal.setAttribute('aria-hidden', 'false');
                 successModal.querySelector('[role="dialog"]').focus();
@@ -606,6 +628,20 @@
         successModal.classList.remove('active');
         successModal.setAttribute('aria-hidden', 'true');
         submitBtn.focus();
+    });
+
+    document.getElementById('copyTicketBtn').addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(successTicketCode.textContent);
+            document.getElementById('copyTicketBtn').textContent = 'Tersalin';
+        } catch (error) {
+            const range = document.createRange();
+            range.selectNodeContents(successTicketCode);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            document.getElementById('copyTicketBtn').textContent = 'Pilih kode lalu salin';
+        }
     });
 
     successModal.addEventListener('click', (e) => {
