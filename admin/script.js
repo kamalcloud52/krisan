@@ -199,6 +199,7 @@ function setActiveNav(page) {
     } else if (page === 'unread') {
         if (navItems[2]) { navItems[2].classList.add('active'); navItems[2].setAttribute('aria-current', 'page'); }
     }
+    if (window.innerWidth <= 900) closeSidebar();
 }
 
 // ============================================================
@@ -339,75 +340,71 @@ function clearFilters() {
 // RENDER TABLE
 // ============================================================
 
+let lastCompactTableMode = null;
+
+function getFeedbackDisplay(row) {
+    const isUnread = row.Status !== 'Sudah Dibaca';
+    return {
+        isUnread,
+        statusLabel: isUnread ? 'Belum Dibaca' : 'Sudah Dibaca',
+        statusClass: isUnread ? 'status-unread' : 'status-read',
+        timestamp: row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-',
+        followUp: row['Status Tindak Lanjut'] || 'Baru',
+        replyStatus: row['Status Balasan'] === 'Terkirim' ? 'Balasan terkirim' : (row.Balasan ? 'Draft balasan' : 'Belum dibalas')
+    };
+}
+
+function renderFeedbackActions(row, isUnread) {
+    return `
+        <button class="btn-view" onclick="viewDetail(${row.no})" aria-label="Lihat detail masukan ${row.no}"><i class="fas fa-eye"></i><span>Detail</span></button>
+        <button class="btn-followup" onclick="openFollowUp(${row.no})" aria-label="Balas atau tindak lanjuti masukan ${row.no}"><i class="fas fa-reply"></i><span>Balas / tindak lanjut</span></button>
+        ${isUnread ? `<button class="btn-read" onclick="markAsRead(${row.no})" aria-label="Tandai masukan ${row.no} sudah dibaca"><i class="fas fa-check"></i><span>Tandai dibaca</span></button>` : ''}
+        <button class="btn-delete" onclick="deleteRow(${row.no})" aria-label="Hapus masukan ${row.no}"><i class="fas fa-trash"></i><span class="mobile-only-label">Hapus</span></button>`;
+}
+
 function renderTable(data) {
     const tableContent = document.getElementById('tableContent');
+    const compactMode = window.matchMedia('(max-width: 900px)').matches;
+    lastCompactTableMode = compactMode;
 
     if (!data || data.length === 0) {
-        tableContent.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-inbox"></i>
-                <p>Tidak ada data yang ditemukan</p>
-            </div>
-        `;
+        tableContent.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada data yang ditemukan</p></div>`;
         return;
     }
 
-    let html = `
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:50px;">No</th>
-                    <th style="min-width:200px;">Pesan</th>
-                    <th style="min-width:120px;">Kategori</th>
-                    <th style="min-width:150px;">Saran Perbaikan</th>
-                    <th style="min-width:100px;">Status</th>
-                    <th style="min-width:150px;">Tindak lanjut</th>
-                    <th style="min-width:150px;">Waktu</th>
-                    <th style="min-width:210px;">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
+    if (compactMode) {
+        const cards = data.map(row => {
+            const item = getFeedbackDisplay(row);
+            return `<article class="feedback-card">
+                <div class="feedback-card-top"><span class="row-number">Masukan #${row.no || '-'}</span><span class="status-badge ${item.statusClass}">${item.statusLabel}</span></div>
+                <p class="feedback-card-message">${escapeHtml(truncateText(row.pesan || '', 260))}</p>
+                <div class="feedback-card-meta"><span class="category-chip">${escapeHtml(row.kategori || 'Tanpa kategori')}</span><time>${escapeHtml(item.timestamp)}</time></div>
+                ${row.perbaikan ? `<p class="feedback-card-suggestion"><strong>Saran:</strong> ${escapeHtml(truncateText(row.perbaikan, 150))}</p>` : ''}
+                <div class="feedback-card-followup"><span class="followup-badge">${escapeHtml(item.followUp)}</span><span>${escapeHtml(item.replyStatus)}</span></div>
+                <div class="mobile-card-actions">${renderFeedbackActions(row, item.isUnread)}</div>
+            </article>`;
+        }).join('');
+        tableContent.innerHTML = `<div class="mobile-feedback-list">${cards}</div>`;
+        return;
+    }
 
-    data.forEach((row) => {
-        const isUnread = row.Status !== 'Sudah Dibaca';
-        const statusLabel = isUnread ? 'Belum Dibaca' : 'Sudah Dibaca';
-        const statusClass = isUnread ? 'status-unread' : 'status-read';
-        const timestamp = row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-';
-        const followUp = row['Status Tindak Lanjut'] || 'Baru';
-        const replyStatus = row['Status Balasan'] === 'Terkirim' ? 'Balasan terkirim' : (row.Balasan ? 'Draft balasan' : 'Belum dibalas');
-
-        html += `
-            <tr>
-                <td><span class="row-number">${row.no || '-'}</span></td>
-                <td>${escapeHtml(truncateText(row.pesan || '', 50))}</td>
-                <td>${escapeHtml(row.kategori || '-')}</td>
-                <td>${escapeHtml(truncateText(row.perbaikan || '-', 40))}</td>
-                <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
-                <td><span class="followup-badge">${escapeHtml(followUp)}</span><br><small>${escapeHtml(replyStatus)}</small></td>
-                <td>${timestamp}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-view" onclick="viewDetail(${row.no})">
-                            <i class="fas fa-eye"></i> Detail
-                        </button>
-                        <button class="btn-followup" onclick="openFollowUp(${row.no})" aria-label="Balas atau tindak lanjuti masukan ${row.no}">
-                            <i class="fas fa-reply"></i> Tindak lanjut
-                        </button>
-                        ${isUnread ? `<button class="btn-read" onclick="markAsRead(${row.no})">
-                            <i class="fas fa-check"></i> Tandai
-                        </button>` : ''}
-                        <button class="btn-delete" onclick="deleteRow(${row.no})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    });
-
-    html += '</tbody></table>';
-    tableContent.innerHTML = html;
+    const rows = data.map(row => {
+        const item = getFeedbackDisplay(row);
+        return `<tr>
+            <td><span class="row-number">${row.no || '-'}</span></td>
+            <td>${escapeHtml(truncateText(row.pesan || '', 50))}</td>
+            <td>${escapeHtml(row.kategori || '-')}</td>
+            <td>${escapeHtml(truncateText(row.perbaikan || '-', 40))}</td>
+            <td><span class="status-badge ${item.statusClass}">${item.statusLabel}</span></td>
+            <td><span class="followup-badge">${escapeHtml(item.followUp)}</span><br><small>${escapeHtml(item.replyStatus)}</small></td>
+            <td>${escapeHtml(item.timestamp)}</td>
+            <td><div class="action-buttons">${renderFeedbackActions(row, item.isUnread)}</div></td>
+        </tr>`;
+    }).join('');
+    tableContent.innerHTML = `<div class="desktop-feedback-table"><table>
+        <thead><tr><th style="width:50px;">No</th><th style="min-width:200px;">Pesan</th><th style="min-width:120px;">Kategori</th><th style="min-width:150px;">Saran Perbaikan</th><th style="min-width:100px;">Status</th><th style="min-width:150px;">Tindak lanjut</th><th style="min-width:150px;">Waktu</th><th style="min-width:210px;">Aksi</th></tr></thead>
+        <tbody>${rows}</tbody>
+    </table></div>`;
 }
 
 // ============================================================
@@ -667,8 +664,19 @@ function showToast(message, type = 'success') {
 // ============================================================
 
 function toggleSidebar() {
+    const app = document.getElementById('appContent');
     const isOpen = document.getElementById('sidebar').classList.toggle('open');
+    app.classList.toggle('mobile-nav-open', isOpen);
     document.getElementById('hamburgerBtn').setAttribute('aria-expanded', String(isOpen));
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const app = document.getElementById('appContent');
+    if (sidebar) sidebar.classList.remove('open');
+    if (app) app.classList.remove('mobile-nav-open');
+    const hamburger = document.getElementById('hamburgerBtn');
+    if (hamburger) hamburger.setAttribute('aria-expanded', 'false');
 }
 
 // ============================================================
@@ -691,19 +699,31 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('click', function(e) {
     const sidebar = document.getElementById('sidebar');
     const hamburger = document.getElementById('hamburgerBtn');
-    if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('open')) {
+    if (window.innerWidth <= 900 && sidebar && sidebar.classList.contains('open') && sidebar.contains(e.target) && e.target.closest('.nav-item')) {
+        closeSidebar();
+        return;
+    }
+    if (window.innerWidth <= 900 && sidebar && sidebar.classList.contains('open')) {
         if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
-            sidebar.classList.remove('open');
+            closeSidebar();
         }
     }
 });
 
-// Shortcut Enter untuk login
+let responsiveRenderTimer = null;
+window.addEventListener('resize', function() {
+    clearTimeout(responsiveRenderTimer);
+    responsiveRenderTimer = setTimeout(() => {
+        if (lastCompactTableMode === null) return;
+        const compactMode = window.matchMedia('(max-width: 900px)').matches;
+        if (compactMode !== lastCompactTableMode) renderTable(filteredData);
+    }, 120);
+});
+
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeDetail();
         closeFollowUp();
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('hamburgerBtn').setAttribute('aria-expanded', 'false');
+        closeSidebar();
     }
 });
